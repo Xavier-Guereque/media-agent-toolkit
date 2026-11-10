@@ -1,0 +1,26 @@
+.in-warp { position: absolute; inset: 0; width: 100%; height: 100%; }
+
+.in-pos {
+  position: absolute;
+  left: 60px;
+  right: 60px;
+  height: 0;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+.in-pos-titulo { top: 848px; }
+.in-pos-marca { top: 900px; }
+
+.in-titulo {
+  font-family: var(--f-titulo);
+  font-weight: 700;
+  letter-spacing: -0.035em;
+  line-height: 1.02;
+  color: #d3d6dd;
+  text-align: center;
+  text-wrap: balance;
+  max-width: 100%;
+  transform-origin: 50% 50%;
+}
+.in-titulo .enf { color: #ffffff; }

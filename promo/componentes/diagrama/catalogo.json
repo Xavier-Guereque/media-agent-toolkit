@@ -1,0 +1,81 @@
+{
+  "doc": "Memoria / integración: fila de 2–4 orígenes (ícono + nombre) cuyas líneas punteadas fluyen hacia una pastilla central con brillo; debajo, chips de contexto y un chat breve (pregunta del usuario → \"pensando\" → respuesta con *negritas*).",
+  "tinte_defecto": "violeta",
+  "duracion": {
+    "min": 3.2,
+    "max": 10
+  },
+  "titular": true,
+  "subtitulo": true,
+  "props": {
+    "nodos": {
+      "t": "lista",
+      "min": 2,
+      "max": 4,
+      "de": {
+        "t": "objeto",
+        "props": {
+          "icono": {
+            "t": "enum",
+            "valores": ["web", "whatsapp", "app", "telefono", "correo", "chat", "tienda", "usuario", "bot", "camara", "carrito", "datos", "calendario"],
+            "doc": "Ícono del origen (web = globo, app = teléfono, datos = base de datos…)."
+          },
+          "texto": {
+            "t": "texto",
+            "max_palabras": 3,
+            "max_car": 15,
+            "doc": "Nombre corto del origen (\"WhatsApp\", \"App ACME PRO\")."
+          }
+        }
+      },
+      "doc": "Orígenes de la fila superior, de izquierda a derecha."
+    },
+    "centro": {
+      "t": "texto",
+      "max_palabras": 2,
+      "max_car": 14,
+      "doc": "Texto de la pastilla central (\"Memoria\")."
+    },
+    "icono_centro": {
+      "t": "enum",
+      "valores": ["chispas", "cerebro", "datos", "capas"],
+      "defecto": "chispas",
+      "doc": "Ícono de la pastilla central (chispas = IA)."
+    },
+    "chips": {
+      "t": "lista",
+      "opcional": true,
+      "min": 1,
+      "max": 3,
+      "de": {
+        "t": "texto",
+        "max_palabras": 4,
+        "max_car": 30,
+        "enfasis": true,
+        "doc": "Etiqueta gris + *valor en blanco*: \"Proyecto *Bodega Monterrey*\"."
+      },
+      "doc": "Chips de contexto recordado bajo la pastilla (los tres juntos deben caber en una fila)."
+    },
+    "pregunta": {
+      "t": "texto",
+      "max_palabras": 9,
+      "max_car": 48,
+      "doc": "Mensaje del usuario en la burbuja derecha (\"¿Cómo quedó lo de la bodega?\")."
+    },
+    "pensando": {
+      "t": "texto",
+      "opcional": true,
+      "max_palabras": 4,
+      "max_car": 28,
+      "doc": "Estado mientras la IA recuerda (\"Recordando tus proyectos\"); se reemplaza por la respuesta."
+    },
+    "respuesta": {
+      "t": "texto",
+      "max_palabras": 26,
+      "max_car": 160,
+      "enfasis": true,
+      "anti_viuda": true,
+      "doc": "Respuesta del asistente (hasta 4 renglones); *énfasis* = negritas en blanco (\"Tu cotización de la *bodega en Monterrey* sigue abierta…\")."
+    }
+  }
+}

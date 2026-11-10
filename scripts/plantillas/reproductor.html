@@ -1,0 +1,272 @@
+<!doctype html>
+<html lang="es-MX">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>__TITULO__</title>
+<style>
+:root { --fondo: __FONDO__; --panel: __PANEL__; --borde: __BORDE__; --texto: __TEXTO__; --tenue: __TENUE__; --acento: __ACENTO__; --ok: __OK__; --mal: __MAL__; }
+* { box-sizing: border-box; }
+body { margin: 0; background: var(--fondo); color: var(--texto); font: 17px/1.45 Inter, -apple-system, "Segoe UI", Helvetica, Arial, sans-serif; }
+header { padding: 18px 24px 6px; max-width: 1320px; margin: auto; }
+h1 { font-size: 22px; margin: 0; }
+.pie { color: var(--tenue); font-size: 14px; }
+main { display: grid; grid-template-columns: minmax(0, 1fr) 300px; gap: 20px; max-width: 1320px; margin: auto; padding: 12px 24px 32px; }
+#escenario { position: relative; background: #000; border-radius: 14px; overflow: hidden; aspect-ratio: 16 / 9; }
+video { width: 100%; height: 100%; display: block; }
+#pregunta { position: absolute; inset: 0; display: none; flex-direction: column; justify-content: safe center; padding: clamp(14px, 4vw, 56px); background: color-mix(in srgb, var(--fondo) 94%, transparent); overflow: auto; }
+#pregunta.ver { display: flex; }
+#pregunta > * { flex: none; }
+#enunciado { font-size: clamp(19px, 2.4vw, 32px); font-weight: 700; margin: 0 0 14px; outline: none; }
+.op { display: flex; gap: 14px; width: 100%; text-align: left; margin-bottom: 10px; padding: 12px 18px; border-radius: 12px; font: inherit; font-size: clamp(16px, 1.8vw, 22px); color: var(--texto); background: var(--panel); border: 2px solid var(--borde); cursor: pointer; transition: border-color .15s, transform .15s; }
+.op:hover:not(:disabled), .op:focus-visible { border-color: var(--acento); transform: translateX(4px); outline: none; }
+.op:disabled { cursor: default; opacity: .55; }
+.op.bien { border-color: var(--ok); color: var(--ok); opacity: 1; font-weight: 700; }
+.op.error { border-color: var(--mal); color: var(--mal); opacity: 1; }
+.op b { flex: none; }
+#retro { min-height: 1.5em; margin: 6px 0 12px; }
+button.accion { align-self: flex-start; padding: 10px 22px; border: 0; border-radius: 10px; font: inherit; font-weight: 700; background: var(--acento); color: var(--fondo); cursor: pointer; }
+aside { display: flex; flex-direction: column; gap: 16px; min-width: 0; }
+.caja { background: var(--panel); border: 1px solid var(--borde); border-radius: 14px; padding: 14px; }
+.caja h2 { font-size: 13px; color: var(--tenue); margin: 0 0 8px; font-weight: 600; }
+.fila { display: block; width: 100%; text-align: left; padding: 7px 9px; border: 0; border-radius: 8px; background: none; color: var(--texto); font: inherit; font-size: 15px; cursor: pointer; }
+.fila:hover, .fila.activa { background: color-mix(in srgb, var(--acento) 20%, transparent); }
+.fila:disabled { background: none; color: var(--tenue); cursor: not-allowed; }
+#puntaje b { font-size: 26px; display: block; }
+@media (max-width: 1100px) {
+  #pregunta { position: fixed; z-index: 5; background: var(--fondo); }
+}
+@media (max-width: 860px) {
+  main { grid-template-columns: minmax(0, 1fr); padding: 8px 16px 24px; }
+  header { padding: 14px 16px 2px; }
+}
+</style>
+</head>
+<body>
+<header><h1 id="curso"></h1><div class="pie" id="leccion"></div></header>
+<main>
+  <section>
+    <div id="escenario">
+      <video id="v" controls playsinline preload="metadata"></video>
+      <div id="pregunta" role="dialog" aria-modal="true" aria-labelledby="enunciado">
+        <p id="enunciado" tabindex="-1"></p>
+        <div id="opciones"></div>
+        <div id="retro" aria-live="polite"></div>
+        <button class="accion" id="seguir" hidden>Continuar</button>
+      </div>
+    </div>
+    <p class="pie" id="aviso"></p>
+  </section>
+  <aside>
+    <div class="caja" id="puntaje" aria-live="polite"><h2>Tu avance</h2><b id="pct">—</b><span class="pie" id="detalle"></span></div>
+    <div class="caja" id="cajaLec"><h2>Lecciones</h2><div id="lecciones"></div></div>
+    <div class="caja"><h2>En esta lección</h2><div id="capitulos"></div></div>
+  </aside>
+</main>
+<script id="datos" type="application/json">__DATOS__</script>
+<script>
+(function () {
+  var D = JSON.parse(document.getElementById('datos').textContent);
+  var $ = function (id) { return document.getElementById(id); };
+  var v = $('v'), caja = $('pregunta');
+  var clave = 'curso:' + D.curso;
+  var resp = {};
+  try { resp = JSON.parse(localStorage.getItem(clave)) || {}; } catch (e) { resp = {}; }
+  var guardar = function () { try { localStorage.setItem(clave, JSON.stringify(resp)); } catch (e) { /* sin almacenamiento: el avance vive solo en esta visita */ } };
+  var lec = null, activa = null, intentos = 0, prueba = null, tras = null;
+
+  var total = function () { return D.lecciones.reduce(function (n, l) { return n + l.preguntas.length + l.prueba_final.length; }, 0); };
+  var claveP = function (l) { return 'prueba:' + l.id; };
+  var cumplida = function (l) { return !l.prueba_final.length || Boolean((resp[claveP(l)] || {}).fin); };
+  function puntaje() {
+    $('puntaje').hidden = !total();
+    if (!total()) return;
+    var ids = Object.keys(resp).filter(function (k) { return k.indexOf('prueba:') !== 0; }), bien = ids.filter(function (k) { return resp[k].primera; }).length, n = total();
+    $('pct').textContent = ids.length ? Math.round(bien / n * 100) + ' %' : '—';
+    var falta = n - ids.length;
+    $('detalle').textContent = falta ? ids.length + ' de ' + n + ' preguntas respondidas · dominio: ' + D.umbral_pct + ' %'
+      : (bien / n * 100 >= D.umbral_pct ? 'Dominio alcanzado' : 'Aún no alcanzas el ' + D.umbral_pct + ' %: repasa y vuelve a intentar');
+  }
+
+  function pendiente(hasta) {
+    return lec.preguntas.find(function (q) { return !resp[lec.id + '/' + q.id] && q.pausa <= hasta; });
+  }
+
+  function revisa() {
+    if (lec && !activa) {
+      var q = pendiente(v.currentTime);
+      if (q) mostrar(q);
+    }
+  }
+  // rAF da la pausa precisa; los eventos del video cubren la pestaña en segundo plano, donde rAF se detiene.
+  function vigila() { revisa(); requestAnimationFrame(vigila); }
+  v.addEventListener('timeupdate', revisa);
+  v.addEventListener('seeking', revisa);
+
+  function mostrar(q) {
+    activa = q; intentos = 0;
+    v.pause();
+    if (v.currentTime > q.pausa + 0.3) v.currentTime = q.pausa;  // quien adelanta vuelve a la pregunta: es obligatoria
+    $('enunciado').textContent = q.enunciado;
+    $('retro').textContent = '';
+    $('seguir').hidden = true;
+    $('seguir').textContent = 'Continuar';
+    var ops = $('opciones');
+    ops.textContent = '';
+    q.opciones.forEach(function (o, i) {
+      var b = document.createElement('button');
+      b.className = 'op';
+      var letra = document.createElement('b');
+      letra.textContent = String.fromCharCode(65 + i);
+      var s = document.createElement('span');
+      s.textContent = o;
+      b.append(letra, s);
+      b.onclick = function () { elegir(i, b); };
+      ops.append(b);
+    });
+    caja.classList.add('ver');
+    $('enunciado').focus();
+  }
+
+  function cerrar(q, primera) {
+    var k = lec.id + '/' + q.id;
+    if (!resp[k]) resp[k] = { primera: primera };  // el puntaje cuenta solo el primer intento, también al repetir un test
+    if (prueba && primera) prueba.bien += 1;
+    guardar(); puntaje();
+    Array.prototype.forEach.call(document.querySelectorAll('.op'), function (b) { b.disabled = true; });
+    $('seguir').hidden = false;
+    $('seguir').focus();
+  }
+
+  function elegir(i, b) {
+    var q = activa;
+    intentos += 1;
+    if (i === q.correcta) {
+      b.classList.add('bien');
+      $('retro').textContent = q.retro;
+      cerrar(q, intentos === 1);
+      return;
+    }
+    b.classList.add('error');
+    b.disabled = true;
+    var pista = (q.retro_opciones || [])[i] || 'Esa no es.';
+    if (intentos > D.reintentos) {
+      document.querySelectorAll('.op')[q.correcta].classList.add('bien');
+      $('retro').textContent = pista + ' ' + q.retro;
+      cerrar(q, false);
+    } else {
+      $('retro').textContent = pista + ' Intenta de nuevo.';
+    }
+  }
+
+  // Test entre lecciones: mismas preguntas y retroalimentación, fuera del video. Aprobar (o agotar reintentos) abre la siguiente.
+  function iniciarPrueba(l) {
+    prueba = { l: l, i: 0, bien: 0 };
+    mostrar(l.prueba_final[0]);
+  }
+
+  function terminarPrueba() {
+    var p = prueba, l = p.l, n = l.prueba_final.length, pct = Math.round(p.bien / n * 100);
+    var e = resp[claveP(l)] || { intentos: 0, pct: 0 };
+    e.intentos += 1; e.pct = Math.max(e.pct, pct);
+    var ok = pct >= D.umbral_pct;
+    e.fin = e.fin || ok || e.intentos > D.reintentos;
+    resp[claveP(l)] = e;
+    guardar(); bloqueos();
+    prueba = null; activa = null;
+    var sig = D.lecciones[D.lecciones.indexOf(l) + 1];
+    $('enunciado').textContent = 'Resultado del test: ' + pct + ' %';
+    $('opciones').textContent = '';
+    $('retro').textContent = ok ? 'Dominio alcanzado.' : e.fin ? 'No alcanzaste el ' + D.umbral_pct + ' %. Repasa esta lección cuando puedas.' : 'Necesitas ' + D.umbral_pct + ' %. Te quedan ' + (D.reintentos + 1 - e.intentos) + ' intento(s).';
+    tras = e.fin ? function () { caja.classList.remove('ver'); if (sig) abrir(sig); } : function () { iniciarPrueba(l); };
+    $('seguir').textContent = e.fin ? (sig ? 'Siguiente lección' : 'Terminar') : 'Reintentar';
+    $('seguir').hidden = false;
+    $('seguir').focus();
+  }
+
+  $('seguir').onclick = function () {
+    if (tras) {
+      var f = tras;
+      tras = null;
+      f();
+      return;
+    }
+    var q = activa;
+    if (prueba) {
+      prueba.i += 1;
+      if (prueba.i < prueba.l.prueba_final.length) mostrar(prueba.l.prueba_final[prueba.i]);
+      else terminarPrueba();
+      return;
+    }
+    caja.classList.remove('ver');
+    activa = null;
+    v.currentTime = q.reanuda;
+    v.play();
+  };
+
+  document.addEventListener('keydown', function (e) {
+    if (!activa) return;
+    var i = 'abcd'.indexOf(e.key.toLowerCase());
+    var b = document.querySelectorAll('.op')[i];
+    if (b && !b.disabled) b.click();
+  });
+
+  v.addEventListener('ended', function () {
+    var i = D.lecciones.indexOf(lec);
+    if (!cumplida(lec)) { iniciarPrueba(lec); return; }
+    if (D.lecciones[i + 1]) $('aviso').textContent = 'Lección terminada. Sigue: ' + D.lecciones[i + 1].titulo;
+  });
+
+  // Una lección se abre solo si los tests de las anteriores ya se cumplieron.
+  function bloqueos() {
+    var libre = true;
+    D.lecciones.forEach(function (l, i) {
+      $('lecciones').children[i].disabled = !libre;
+      libre = libre && cumplida(l);
+    });
+  }
+
+  function abrir(l) {
+    lec = l; activa = null; prueba = null; tras = null;
+    caja.classList.remove('ver');
+    v.src = l.video;
+    Array.prototype.slice.call(v.querySelectorAll('track')).forEach(function (t) { t.remove(); });
+    if (l.vtt) {
+      var t = document.createElement('track');
+      t.kind = 'subtitles'; t.srclang = 'es'; t.label = 'Español';
+      t.src = URL.createObjectURL(new Blob([l.vtt], { type: 'text/vtt' }));  // incrustado: <track> falla en file://
+      v.append(t);
+    }
+    $('leccion').textContent = l.titulo;
+    $('aviso').textContent = '';
+    var c = $('capitulos');
+    c.textContent = '';
+    l.capitulos.forEach(function (x) {
+      var b = document.createElement('button');
+      b.className = 'fila';
+      b.textContent = x.titulo;
+      b.onclick = function () { v.currentTime = x.t; v.play(); };
+      c.append(b);
+    });
+    Array.prototype.forEach.call($('lecciones').children, function (b, i) { b.classList.toggle('activa', D.lecciones[i] === l); });
+  }
+
+  $('curso').textContent = D.curso;
+  $('aviso').textContent = '';
+  D.lecciones.forEach(function (l) {
+    var b = document.createElement('button');
+    b.className = 'fila';
+    b.textContent = l.titulo;
+    b.onclick = function () { abrir(l); };
+    $('lecciones').append(b);
+  });
+  if (D.lecciones.length < 2) $('cajaLec').hidden = true;
+  bloqueos();
+  abrir(D.lecciones[0]);
+  puntaje();
+  vigila();
+})();
+</script>
+<p class="pie" style="max-width:1320px;margin:auto;padding:0 24px 24px">__AVISO__</p>
+</body>
+</html>

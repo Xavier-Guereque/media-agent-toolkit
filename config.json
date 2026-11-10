@@ -1,0 +1,500 @@
+{
+  "version": "1.7.0",
+  "construccion": "01112026",
+  "actualizacion": {
+    "auto_pull": false
+  },
+  "openrouter": {
+    "url_base": "https://openrouter.ai/api/v1",
+    "variable_api_key": "OPENROUTER_API_KEY",
+    "endpoints": {
+      "chat": "/chat/completions",
+      "voz": "/chat/completions",
+      "decisiones": "https://openrouter.ai/api/alpha/decisions"
+    }
+  },
+  "elevenlabs": {
+    "url_base": "https://api.elevenlabs.io/v1",
+    "variable_api_key": "ELEVENLABS_API_KEY",
+    "opcional": true
+  },
+  "modelos": {
+    "razonamiento": "deepseek/deepseek-v4.1-flash",
+    "rapido": "google/gemini-2.5-flash",
+    "imagen": "google/gemini-2.5-flash-image",
+    "vision": "google/gemini-2.5-flash",
+    "voz": "openai/gpt-audio-mini",
+    "voz_tts": "fish-audio/s2-pro",
+    "voz_clonada": "fish-audio/s2-pro",
+    "guion": "google/gemini-2.5-pro",
+    "prompts": "google/gemini-2.5-flash",
+    "decisiones": "typesafe/jev-1.13"
+  },
+  "herramientas": {
+    "cortar_video": {
+      "tipo": "local",
+      "comando": "ffmpeg"
+    },
+    "unir_clips": {
+      "tipo": "local",
+      "comando": "ffmpeg (concat)"
+    },
+    "transiciones": {
+      "tipo": "local",
+      "comando": "ffmpeg (filtros xfade/acrossfade)"
+    },
+    "marca_agua": {
+      "tipo": "local",
+      "comando": "ffmpeg (filtros overlay/drawtext)"
+    },
+    "quitar_silencios": {
+      "tipo": "local",
+      "comando": "python3 scripts/silencios.py <entrada> [--proyecto <dir>]",
+      "alternativa": "auto-editor (--motor auto-editor, si está instalado)"
+    },
+    "quitar_ruido": {
+      "tipo": "local",
+      "comando": "ffmpeg (filtro afftdn)",
+      "alternativa": "deepfilternet (si está instalado, mayor calidad)"
+    },
+    "subtitulos": {
+      "tipo": "local",
+      "comando": "python3 scripts/subtitulos.py <video> [--quemar] [--proyecto <dir>]",
+      "proveedor": "auto = faster-whisper si se puede importar; si no, OpenRouter",
+      "clave_modelo": "vision",
+      "alternativa": "elevenlabs speech-to-text (opt-in, requiere ELEVENLABS_API_KEY)"
+    },
+    "descargar_video": {
+      "tipo": "local",
+      "comando": "yt-dlp -f \"bv*+ba/b\" --merge-output-format mp4 -o <destino> <url>",
+      "alternativa": "ninguna (yt-dlp es opcional en config.json > software; uv tool install yt-dlp)"
+    },
+    "traducir_pantalla": {
+      "tipo": "local",
+      "comando": "python3 scripts/pantalla.py detectar <video> --json caps.json  &&  python3 scripts/pantalla.py generar caps.json --render",
+      "nota": "reemplaza los rótulos incrustados por su traducción en el mismo lugar y estilo; conserva audio y duración (skill traducir-texto-en-pantalla)",
+      "extras": "pantalla.py fuente <in.woff2> <out.ttf> --peso 700 (woff2 → ttf con fonttools+brotli)"
+    },
+    "doblar_video": {
+      "tipo": "local",
+      "comando": "python3 scripts/doblar.py transcribir <video> --proyecto <dir>  &&  python3 scripts/doblar.py unidades <dir>  &&  (traducir `es` en doblaje.json)  &&  python3 scripts/doblar.py todo <dir>/doblaje.json",
+      "nota": "doblaje a otro idioma: voz nueva por unidad ajustada al hueco original + captions en el estilo de la pieza (banda cubierta, énfasis {resaltado} *negrita*) + rótulos estáticos traducidos; misma duración que el original (skill doblar-video)",
+      "voz_proveedores": "voicestudio (local, $0, CC-BY-NC: no comercial) | fish (modelos.voz_tts por OpenRouter) | elevenlabs (regla AGENT §5)",
+      "requiere": "faster-whisper en ~/.venvs/whisper (tiempos por palabra), Pillow para el render, fuentes ttf (pantalla.py fuente)"
+    },
+    "crear_imagen": {
+      "tipo": "nube",
+      "comando": "python3 scripts/imagen.py generar --prompt-archivo <prompt.md> [--referencia <img> ...] [--relacion 9:16] --salida proyectos/<p>/<nombre>.png",
+      "clave_modelo": "imagen",
+      "nota": "las referencias viajan como image_url con el prompt (estilo/composición o edición puntual de una imagen ya generada); registra recursos/costos.jsonl (usage.cost) y la etapa 'imagen' en el tablero",
+      "verificado": "2026-10-30: 0.039 USD y ~8 s por imagen con gemini-2.5-flash-image (768x1344 con --relacion 9:16); --modelo google/gemini-3-pro-image (0.14 USD, 768x1376) para detalles que Flash no resuelve, p. ej. gestos de manos"
+    },
+    "reemplazar_personaje": {
+      "tipo": "local",
+      "comando": "~/.venvs/imagen/bin/python scripts/reemplazar_personaje.py rastrear|solape|reemplazar …",
+      "nota": "sustituye una mascota fija de un video por otro PNG con alfa (rastreo por plantilla, métrica de solape, composición cuadro a cuadro); requiere el venv ~/.venvs/imagen (uv: numpy, pillow, opencv-python-headless). Skill reemplazar-personaje-video",
+      "verificado": "2026-10-30: reel 1080x1920, 3853 cuadros; rastreo ~1 min, sustitución + re-render del doblaje ~2 min, 0 USD"
+    },
+    "remotion_video": {
+      "tipo": "local",
+      "comando": "python3 scripts/remotion.py nuevo <slug> | validar | estudio | render | todo <proyecto>",
+      "nota": "segundo motor, OPCIONAL, para composiciones libres que el catálogo del motor promo no expresa (demos con metraje real, gráficas animadas desde datos, Lottie, mapas, tipografía cinética); el agente escribe remotion.json + un TSX en remotion/src/composiciones/proyectos/ (skills oficiales /remotion-*); h264 yuv420p terminado con FFmpeg (BT.709, loudnorm -14 LUFS, faststart). Regla: FFmpeg → promo-ui → Remotion. Licencia: gratis para personas, ONG y empresas de hasta 3 personas; 4+ empleados → Company License (remotion.pro/license). Skill remotion-video",
+      "requiere": "node >= 20 y remotion-deps (software.opcional: npm ci --prefix remotion + Chrome Headless Shell)",
+      "verificado": "2026-10-31 (M3 16 GB): npm install 8 s + Chrome Headless Shell 13 s (node_modules 845 MB, 579 MB el navegador); ejemplo 1080x1920, 3 s, 90 cuadros: motor 3-6 s (empaquetado incluido) + acabado FFmpeg 1 s, 0 USD; con audio vía staticFile() -14.0 LUFS; enrutador JEV: 'gráfica animada estilo motion graphics' → remotion_video, 'promo con WhatsApp animado' → promo_ui"
+    },
+    "curso_video": {
+      "tipo": "local",
+      "comando": "python3 scripts/curso.py nuevo <slug> | validar | voz | componer | qa | render | carta | todo <proyecto>",
+      "nota": "cursos en video: el agente solo escribe curso.json; validar aplica lints pedagógicos sin LLM, una lección = un video = un proyecto Remotion (composición BASE Leccion) en lecciones/<id>/; carta entrega carta descriptiva, quiz y transcripciones. Skill crear-curso, metodología en docs/Metodologia-Cursos-Video",
+      "requiere": "remotion-deps (software.opcional); faster-whisper opcional para sincronía por palabra"
+    },
+    "tablero_avance": {
+      "tipo": "local",
+      "comando": "python3 scripts/tablero.py [<proyecto>] [--puerto 8765]  → http://127.0.0.1:8765/",
+      "nota": "dashboard local de avance: lee recursos/avance.jsonl (comun.avance) y los logs de doblar.py; lanzarlo antes de cualquier proceso largo (AGENT §9)"
+    },
+    "voz": {
+      "tipo": "modelo",
+      "clave_modelo": "voz",
+      "parametros": "chat/completions con modalities=[text,audio], audio={voice,format:pcm16}, stream:true (SSE); salida PCM16 24kHz mono, convertir con ffmpeg -f s16le -ar 24000 -ac 1",
+      "alternativa": "elevenlabs (opcional, requiere ELEVENLABS_API_KEY)"
+    },
+    "clonar_voz": {
+      "tipo": "modelo",
+      "clave_modelo": "voz_clonada",
+      "alternativa_local": "coqui-tts XTTS v2 / f5-tts (muestra en muestras/)",
+      "alternativa": "elevenlabs (opcional, requiere ELEVENLABS_API_KEY)"
+    },
+    "imagen": {
+      "tipo": "modelo",
+      "clave_modelo": "imagen"
+    },
+    "ensamblar_video": {
+      "tipo": "local",
+      "comando": "ffmpeg"
+    },
+    "convertir_formato": {
+      "tipo": "local",
+      "comando": "ffmpeg"
+    }
+  },
+  "transiciones": {
+    "tipo_default": "fade",
+    "duracion_default": 0.5,
+    "disponibles": [
+      "fade",
+      "fadeblack",
+      "fadewhite",
+      "dissolve",
+      "wipeleft",
+      "wiperight",
+      "wipeup",
+      "wipedown",
+      "slideleft",
+      "slideright",
+      "circleopen",
+      "circleclose",
+      "radial",
+      "zoomin"
+    ]
+  },
+  "marca_agua": {
+    "tipo": "imagen",
+    "ruta_imagen": "assets/marca_agua.png",
+    "texto": "",
+    "posicion": "inferior_derecha",
+    "opacidad": 0.6,
+    "margen": 20,
+    "escala": 0.15
+  },
+  "salida": {
+    "formatos_video": [
+      "mp4",
+      "webm",
+      "mov"
+    ],
+    "formatos_audio": [
+      "mp3",
+      "wav",
+      "aac"
+    ],
+    "formatos_imagen": [
+      "png",
+      "jpg",
+      "webp"
+    ],
+    "formatos_subtitulos": [
+      "srt",
+      "vtt"
+    ],
+    "resoluciones": {
+      "1080p": "1920x1080",
+      "720p": "1280x720",
+      "4k": "3840x2160",
+      "vertical": "1080x1920",
+      "cuadrada": "1080x1080"
+    }
+  },
+  "software": {
+    "requerido": {
+      "ffmpeg": "brew install ffmpeg",
+      "python3": "brew install python",
+      "curl": "sistema (macOS)",
+      "jq": "brew install jq",
+      "node": "manual (>=20; nvm o nodejs.org)",
+      "promo-deps": "npm ci --prefix promo"
+    },
+    "opcional": {
+      "faster-whisper": "uv venv --python 3.12 ~/.venvs/whisper && uv pip install --python ~/.venvs/whisper/bin/python faster-whisper  (o: python3 -m venv ~/.venvs/whisper && ~/.venvs/whisper/bin/pip install faster-whisper)",
+      "auto-editor": "pip install auto-editor",
+      "deepFilter": "pip install deepfilternet",
+      "yt-dlp": "uv tool install yt-dlp (o brew install yt-dlp)",
+      "tesseract": "brew install tesseract",
+      "voicestudio": "curl -fsSL https://voicestudio.sh/install | sh  (TTS/clonación local OmniVoice, CC-BY-NC; app en /Applications, backend 127.0.0.1:3900; ver docs/Lecciones-2026-09-30-voicestudio-mcp)",
+      "remotion-deps": "npm ci --prefix remotion && npx --prefix remotion remotion browser ensure"
+    }
+  },
+  "musica_libre": {
+    "fuentes": [
+      "local",
+      "procedural",
+      "pixabay"
+    ],
+    "carpeta_local": "assets/musica/",
+    "pixabay": {
+      "url_base": "https://pixabay.com/api/videos/",
+      "variable_api_key": "PIXABAY_API_KEY",
+      "licencia": "Pixabay Content License"
+    },
+    "nota": "procedural = generada con FFmpeg (ver docs/Musica-Libre-de-Derechos)"
+  },
+  "imagenes_libres": {
+    "fuentes": [
+      "local",
+      "wikimedia",
+      "pexels",
+      "unsplash",
+      "pixabay"
+    ],
+    "carpeta_local": "assets/imagenes/",
+    "wikimedia": {
+      "url_base": "https://commons.wikimedia.org/w/api.php",
+      "licencia": "CC variadas, verificar atribución"
+    },
+    "pexels": {
+      "url_base": "https://api.pexels.com/v1/",
+      "videos": {
+        "url_base": "https://api.pexels.com/videos/"
+      },
+      "variable_api_key": "PEXELS_API_KEY",
+      "licencia": "Pexels License"
+    },
+    "unsplash": {
+      "url_base": "https://api.unsplash.com/",
+      "variable_api_key": "UNSPLASH_ACCESS_KEY",
+      "licencia": "Unsplash License"
+    },
+    "pixabay": {
+      "url_base": "https://pixabay.com/api/",
+      "variable_api_key": "PIXABAY_API_KEY",
+      "licencia": "Pixabay Content License"
+    }
+  },
+  "costos": {
+    "reporte": true,
+    "log": "recursos/costos.jsonl",
+    "moneda": "USD",
+    "sesion_hermes": {
+      "incluir": true,
+      "db": "~/.hermes/state.db",
+      "nota": "scripts/costo_sesion_hermes.py lee la tabla session_model_usage de Hermes y suma el costo de la sesión del agente al costos.jsonl del proyecto, para que el reporte no subestime la pieza"
+    }
+  },
+  "render": {
+    "reporte_avance_minutos": 5,
+    "tablero": {
+      "puerto": 8765,
+      "archivo": "recursos/avance.jsonl",
+      "etapas": [
+        "descarga",
+        "transcripcion",
+        "unidades",
+        "traduccion",
+        "voz",
+        "render",
+        "qa",
+        "verificacion"
+      ]
+    }
+  },
+  "audio_cc0": {
+    "salida": "~/Music/media-stock",
+    "nota": "Stock compartido de audio CC0 1.0 (scripts/fetch_audio.py): manifest.json + credits.csv; el motor promo copia lo que usa a recursos/audio/cc0/"
+  },
+  "promo": {
+    "fps": 30,
+    "crf": 17,
+    "preset": "slow",
+    "grano": 4,
+    "workers": 3,
+    "node": "auto",
+    "zonas_seguras": {
+      "arriba": 150,
+      "abajo": 420,
+      "derecha": 140
+    },
+    "mezcla": {
+      "lufs": -14,
+      "tp": -1.5,
+      "musica_sola_lufs": -20,
+      "voz_lufs": -16,
+      "musica_con_voz_lufs": -24
+    },
+    "musica_bpm": 112,
+    "modelo_borrador": "guion",
+    "modelo_revision": "google/gemini-3.8-flash"
+  },
+  "remotion": {
+    "fps": 30,
+    "crf": 17,
+    "x264_preset": "slow",
+    "concurrencia": null,
+    "licencia": null
+  },
+  "voz_default": {
+    "proveedor": "speech",
+    "modelo": "google/gemini-3.8-flash-tts",
+    "voice": "Achird",
+    "instructions": "Voz adulta y madura, alegre y cálida, con la energía de una persona docente. Dicción clara, ritmo ágil pero sin prisa, español de México neutro.",
+    "nota": "Voz de la casa para cursos y explicadores (casting proyectos/muestras-voz-curso_31102026). Cada copia puede cambiarla en config.local.json. Alterna por curso: \"voz\": {\"proveedor\": \"speech\", \"voice\": \"Puck\"}.",
+    "alternas": {
+      "puck": {
+        "modelo": "google/gemini-3.8-flash-tts",
+        "voice": "Puck",
+        "genero": "hombre",
+        "muestra": 12
+      },
+      "sulafat": {
+        "modelo": "google/gemini-3.8-flash-tts",
+        "voice": "Sulafat",
+        "genero": "mujer",
+        "muestra": 11
+      },
+      "gacrux": {
+        "modelo": "google/gemini-3.8-flash-tts",
+        "voice": "Gacrux",
+        "genero": "mujer",
+        "muestra": 10
+      }
+    }
+  },
+  "cursos": {
+    "orientacion": "horizontal",
+    "lufs": -16,
+    "max_min_leccion": 10,
+    "ideal_min_leccion": 6,
+    "max_s_escena": 45,
+    "max_s_sin_pregunta": 360,
+    "lecciones_modulo": [
+      3,
+      5
+    ],
+    "horas_modulo": [
+      1,
+      2
+    ],
+    "seg_por_silaba": 0.2,
+    "colchon_inicio": 0.35,
+    "pausa_escena": 0.6,
+    "pausa_pregunta": 5.0,
+    "cola": 0.5,
+    "min_preguntas_leccion": 1,
+    "opciones_min": 2,
+    "opciones_max": 4,
+    "min_por_pregunta": 1.5,
+    "max_puntos": 4,
+    "max_palabras_punto": 8,
+    "max_palabras_pantalla": 40,
+    "max_car_linea_ejemplo": 42,
+    "subtitulos": {
+      "quemados": false,
+      "max_car": 42,
+      "lineas": 2,
+      "cps_max": 17
+    },
+    "musica": false,
+    "mezcla": {
+      "voz_lufs": -16,
+      "musica_lufs": -26
+    },
+    "temas": {
+      "cine": {
+        "fondo": "#090C18",
+        "texto": "#F4F6FB",
+        "tenue": "#A9B2C8",
+        "acento": "#56B4E9",
+        "correcta": "#2FBF97",
+        "alerta": "#F5A524",
+        "peligro": "#FF6B5E",
+        "panel": "#141A2E",
+        "borde": "#2B3556",
+        "glow": ["#27347A77", "#1B5C7A55", "#4B2A8A44"]
+      },
+      "claro": {
+        "fondo": "#FAFAF7",
+        "texto": "#1A1A1A",
+        "tenue": "#5A5A5A",
+        "acento": "#0072B2",
+        "correcta": "#007A5A",
+        "alerta": "#B34700"
+      },
+      "oscuro": {
+        "fondo": "#0F1115",
+        "texto": "#FFFFFF",
+        "tenue": "#B8BCC4",
+        "acento": "#56B4E9",
+        "correcta": "#2FBF97",
+        "alerta": "#E69F00"
+      }
+    },
+    "tema": "cine",
+    "max_s_estatica": 8,
+    "sonido": {
+      "sfx": true,
+      "sfx_lufs": -33
+    },
+    "aviso_ia": "Voz sintética y contenido asistido por inteligencia artificial, con revisión humana.",
+    "acreditacion": {
+      "minimo_pct": 80,
+      "reintentos": 2
+    },
+    "bloom": {
+      "recordar": [
+        "identificar",
+        "definir",
+        "enumerar",
+        "nombrar",
+        "reconocer",
+        "recordar",
+        "listar"
+      ],
+      "comprender": [
+        "explicar",
+        "describir",
+        "resumir",
+        "interpretar",
+        "clasificar",
+        "comparar",
+        "ejemplificar",
+        "distinguir"
+      ],
+      "aplicar": [
+        "aplicar",
+        "calcular",
+        "configurar",
+        "ejecutar",
+        "implementar",
+        "resolver",
+        "usar",
+        "demostrar"
+      ],
+      "analizar": [
+        "analizar",
+        "diferenciar",
+        "organizar",
+        "diagnosticar",
+        "contrastar",
+        "examinar",
+        "descomponer"
+      ],
+      "evaluar": [
+        "evaluar",
+        "justificar",
+        "criticar",
+        "juzgar",
+        "verificar",
+        "seleccionar",
+        "argumentar",
+        "validar"
+      ],
+      "crear": [
+        "diseñar",
+        "construir",
+        "planear",
+        "producir",
+        "elaborar",
+        "desarrollar",
+        "formular",
+        "generar"
+      ]
+    },
+    "jev": {
+      "umbral": 0.7
+    },
+    "costo_voz_usd_min": {
+      "speech": 0.014,
+      "fish": 0.026,
+      "gpt-audio": 0.004
+    }
+  }
+}

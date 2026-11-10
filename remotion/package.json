@@ -1,0 +1,33 @@
+{
+  "name": "media-agent-toolkit-remotion",
+  "private": true,
+  "version": "0.1.0",
+  "description": "Motor opcional de composiciones libres (React → MP4 con Remotion) para media-agent-toolkit",
+  "engines": {
+    "node": ">=20"
+  },
+  "scripts": {
+    "registro": "node motor.mjs registro",
+    "ensure": "remotion browser ensure",
+    "preestudio": "node motor.mjs registro",
+    "estudio": "remotion studio",
+    "precomposiciones": "node motor.mjs registro",
+    "composiciones": "remotion compositions src/index.ts",
+    "pretest": "node motor.mjs registro",
+    "test": "tsc --noEmit && node --test pruebas/*.test.mjs"
+  },
+  "dependencies": {
+    "@remotion/bundler": "4.0.539",
+    "@remotion/cli": "4.0.539",
+    "@remotion/google-fonts": "4.0.539",
+    "@remotion/renderer": "4.0.539",
+    "@remotion/transitions": "4.0.539",
+    "react": "19.2.3",
+    "react-dom": "19.2.3",
+    "remotion": "4.0.539"
+  },
+  "devDependencies": {
+    "@types/react": "19.2.7",
+    "typescript": "5.9.3"
+  }
+}

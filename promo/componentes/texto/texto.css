@@ -1,0 +1,29 @@
+.tx {
+  position: absolute;
+  left: 90px;
+  right: 90px;
+  top: 0;
+  bottom: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding-bottom: 180px; /* centro óptico un poco arriba del centro geométrico */
+}
+.tx-mov { width: 100%; text-align: center; transform-origin: 50% 50%; }
+.tx-texto {
+  font-family: var(--f-titulo);
+  font-weight: 700;
+  line-height: 1.06;
+  letter-spacing: -0.025em;
+  color: var(--c-texto);
+  text-wrap: balance;
+}
+.tx-texto .enf { color: var(--c-marca-claro); }
+.tx-apoyo {
+  margin-top: 34px;
+  font-family: var(--f-texto);
+  font-weight: 500;
+  line-height: 1.25;
+  color: var(--c-texto2);
+  text-wrap: balance;
+}

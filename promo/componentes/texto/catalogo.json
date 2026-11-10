@@ -1,0 +1,27 @@
+{
+  "doc": "Enunciado grande al centro (gancho o puente) con una línea de apoyo opcional.",
+  "tinte_defecto": "teal",
+  "duracion": {
+    "min": 2.0,
+    "max": 7
+  },
+  "titular": false,
+  "props": {
+    "texto": {
+      "t": "texto",
+      "max_palabras": 10,
+      "max_car": 64,
+      "enfasis": true,
+      "anti_viuda": true,
+      "doc": "Frase principal; *énfasis* en 1–2 palabras."
+    },
+    "apoyo": {
+      "t": "texto",
+      "opcional": true,
+      "max_palabras": 14,
+      "max_car": 90,
+      "anti_viuda": true,
+      "doc": "Línea secundaria más chica."
+    }
+  }
+}

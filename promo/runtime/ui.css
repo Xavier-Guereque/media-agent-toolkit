@@ -1,0 +1,108 @@
+/* ui.css — kit visual compartido por los componentes de "UI de producto" (chat, acciones, diagrama,
+   teléfono). Medido sobre la referencia (1080×1920): tarjeta de 880 px, radios generosos, bordes
+   finos translúcidos, texto Figtree, folios/modelos en JetBrains Mono. Todo componente de UI usa
+   estas clases para que el video se vea como UN producto, no como piezas sueltas. */
+
+.ui-tarjeta {
+  position: relative;
+  background: var(--c-tarjeta);
+  border: 1.5px solid rgba(255, 255, 255, 0.1);
+  border-radius: 30px;
+  box-shadow: 0 30px 80px rgba(0, 0, 0, 0.45), 0 0 0 1px rgba(0, 0, 0, 0.35);
+  overflow: hidden;
+  color: var(--c-texto);
+  font-family: var(--f-texto);
+}
+
+.ui-cabecera {
+  display: flex;
+  align-items: center;
+  gap: 18px;
+  height: 88px;
+  padding: 0 30px;
+  border-bottom: 1.5px solid rgba(255, 255, 255, 0.08);
+  background: var(--c-tarjeta);
+  color: #cfd3da;
+}
+.ui-cabecera .ui-titulo { font-weight: 600; font-size: 30px; color: #fff; letter-spacing: 0.005em; }
+.ui-cabecera .ui-acciones { margin-left: auto; display: flex; gap: 22px; }
+
+.ui-chip {
+  display: inline-flex;
+  align-items: center;
+  height: 44px;
+  padding: 0 18px;
+  border-radius: 999px;
+  background: #25272d;
+  color: #d7dae0;
+  font-size: 22px;
+  font-weight: 500;
+}
+
+/* Recuadro interno (razonamiento, productos, cotización). */
+.ui-caja {
+  border: 1.5px solid rgba(255, 255, 255, 0.1);
+  border-radius: 22px;
+  background: rgba(255, 255, 255, 0.015);
+}
+
+/* Pastilla de paso: activa (azul, puntos) → hecha (verde, check). Colores los interpola ui.js. */
+.ui-paso {
+  display: inline-flex;
+  align-items: center;
+  gap: 12px;
+  height: 46px;
+  padding: 0 20px 0 14px;
+  border-radius: 999px;
+  border: 1.5px solid transparent;
+  font-size: 23px;
+  font-weight: 500;
+  white-space: nowrap;
+}
+.ui-paso-ico { position: relative; width: 28px; height: 28px; flex: none; }
+.ui-paso-ico > * { position: absolute; inset: 0; display: flex; align-items: center; justify-content: center; }
+.ui-puntos { gap: 5px; }
+.ui-puntos i { display: block; width: 7px; height: 7px; border-radius: 50%; background: currentColor; }
+
+.ui-boton {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  height: 54px;
+  padding: 0 26px;
+  border-radius: 14px;
+  font-family: var(--f-texto);
+  font-weight: 600;
+  font-size: 24px;
+  white-space: nowrap;
+  color: #fff;
+  background: var(--c-marca);
+}
+.ui-boton.azul-suave { background: rgba(75, 103, 214, 0.55); color: #e3e9ff; }
+.ui-boton.amarillo { background: var(--c-amarillo); color: #1b1c20; }
+.ui-boton.fantasma { background: rgba(255, 255, 255, 0.07); color: #d7dae0; }
+.ui-boton.verde { background: var(--c-cta); }
+
+/* Insignia de cantidad (×12). */
+.ui-insignia {
+  display: inline-flex;
+  align-items: center;
+  height: 34px;
+  padding: 0 12px;
+  border-radius: 999px;
+  background: #3a57c9;
+  color: #fff;
+  font-size: 20px;
+  font-weight: 700;
+  letter-spacing: 0.01em;
+}
+
+.ui-punto { display: block; width: 12px; height: 12px; border-radius: 50%; background: var(--c-exito); box-shadow: 0 0 10px rgba(62, 207, 122, 0.6); }
+.ui-mono { font-family: var(--f-mono); font-size: 19px; color: #9aa0ad; letter-spacing: 0.02em; }
+.ui-tenue { color: #9aa0ad; }
+.ui-aviso-ia { font-size: 19px; color: #8a8f99; text-align: center; }
+
+/* Pista de progreso (rastreo, carga). */
+.ui-pista { position: relative; height: 6px; border-radius: 3px; background: rgba(255, 255, 255, 0.1); overflow: hidden; }
+.ui-pista > i { position: absolute; left: 0; top: 0; bottom: 0; border-radius: 3px; background: var(--c-exito); }

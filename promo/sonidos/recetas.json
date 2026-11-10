@@ -1,0 +1,73 @@
+{
+  "version": 1,
+  "descripcion": "Recetas de efectos (SFX) del motor promo, sintetizadas con FFmpeg aevalsrc (sin material con copyright). Las usa scripts/sonido.py: cada receta se sintetiza una vez en recursos/audio/sfx/<nombre>.wav y se coloca en los tiempos de linea_tiempo.json > cues.",
+  "convenciones": {
+    "expr": "Expresión mono de aevalsrc en t (segundos desde el inicio del efecto), 48 kHz. Sin ':' ni comillas simples. Ruido: random(9); temporales: st()/ld() 1-7 (el estado persiste entre muestras, así se escriben filtros de un polo con barrido).",
+    "d": "Duración en segundos (>= 0.25).",
+    "filtros": "Cadena -af opcional aplicada después de la síntesis.",
+    "ancla": "pico = el instante de máxima amplitud cae en el tiempo del cue (golpes, whoosh, revelado); ataque = el primer cruce del 50 % del pico cae en el cue (arpegios y ráfagas, donde el pico real llega en la 2a o 3a nota)."
+  },
+  "niveles": {
+    "nota": "dB de la sonoridad momentánea máxima (EBU R128, ventana de 400 ms) del efecto respecto a la sonoridad integrada de la cama de música antes de la mezcla final. Cada cue suma 20*log10(g).",
+    "sutil": -11,
+    "normal": -5
+  },
+  "recetas": {
+    "pop": {
+      "d": 0.25,
+      "ancla": "pico",
+      "desc": "Burbuja corta: seno con caída de tono 1400 a 380 Hz en ~20 ms.",
+      "expr": "(1-exp(-t/0.0012))*exp(-t*34)*sin(2*PI*(380*t+(1400-380)/55*(1-exp(-55*t))))",
+      "filtros": "highpass=f=180,lowpass=f=7000"
+    },
+    "tick": {
+      "d": 0.25,
+      "ancla": "pico",
+      "desc": "Toque seco de interfaz: dos senos muy amortiguados y un grano de ruido.",
+      "expr": "st(1,random(9)*2-1);(1-exp(-t/0.0004))*(0.55*sin(2*PI*2800*t)*exp(-t*260)+0.35*sin(2*PI*1150*t)*exp(-t*140)+0.25*ld(1)*exp(-t*600))",
+      "filtros": "highpass=f=400,lowpass=f=9000"
+    },
+    "whoosh": {
+      "d": 0.6,
+      "ancla": "pico",
+      "desc": "Ruido que crece y decrece con barrido de banda (pasabajos de un polo cuyo corte sigue a la envolvente).",
+      "expr": "st(1,random(9)*2-1);st(2,t/0.6);st(3,pow(sin(PI*pow(ld(2),0.75)),2));st(4,1-exp(-2*PI*(300+4200*ld(3))/48000));st(5,1-exp(-2*PI*(90+1100*ld(3))/48000));st(6,ld(6)+ld(4)*(ld(1)-ld(6)));st(7,ld(7)+ld(5)*(ld(1)-ld(7)));(ld(6)-ld(7))*ld(3)",
+      "filtros": "highpass=f=120"
+    },
+    "ping": {
+      "d": 0.7,
+      "ancla": "pico",
+      "desc": "Campanita de aviso en E6 con parciales inarmónicos suaves.",
+      "expr": "(1-exp(-t/0.0015))*(sin(2*PI*1318.51*t)*exp(-t*7)+0.28*sin(2*PI*2637.02*t)*exp(-t*12)+0.12*sin(2*PI*4608*t)*exp(-t*20))",
+      "filtros": "aecho=0.8:0.5:60:0.25"
+    },
+    "exito": {
+      "d": 1.0,
+      "ancla": "ataque",
+      "desc": "Arpegio mayor de 3 notas (C5-E5-G5) tipo marimba.",
+      "expr": "if(gte(t,0),0.9*(1-exp(-t/0.002))*exp(-t*6)*(sin(2*PI*523.25*t)+0.2*sin(2*PI*1046.5*t)*exp(-t*10)),0)+if(gte(t,0.085),0.85*(1-exp(-(t-0.085)/0.002))*exp(-(t-0.085)*6)*(sin(2*PI*659.25*(t-0.085))+0.2*sin(2*PI*1318.51*(t-0.085))*exp(-(t-0.085)*10)),0)+if(gte(t,0.17),(1-exp(-(t-0.17)/0.002))*exp(-(t-0.17)*4.5)*(sin(2*PI*783.99*(t-0.17))+0.2*sin(2*PI*1567.98*(t-0.17))*exp(-(t-0.17)*10)),0)",
+      "filtros": "aecho=0.8:0.45:110:0.22"
+    },
+    "revelar": {
+      "d": 1.8,
+      "ancla": "pico",
+      "desc": "Revelado de logo: riser de ruido con barrido (0-0.7 s) que remata en golpe grave suave + brillo (shimmer).",
+      "expr": "st(1,random(9)*2-1);st(2,clip(t/0.7,0,1));st(3,1-exp(-2*PI*(400+6000*pow(ld(2),2))/48000));st(4,1-exp(-2*PI*(150+1500*pow(ld(2),2))/48000));st(5,ld(5)+ld(3)*(ld(1)-ld(5)));st(6,ld(6)+ld(4)*(ld(1)-ld(6)));st(7,max(t-0.7,0));if(lt(t,0.7),1.4*(ld(5)-ld(6))*pow(ld(2),2.5),(1-exp(-ld(7)/0.002))*(0.9*sin(2*PI*(45*ld(7)+65/20*(1-exp(-20*ld(7)))))*exp(-ld(7)*4)+0.22*(sin(2*PI*2093*ld(7))+0.8*sin(2*PI*2637.02*ld(7))+0.6*sin(2*PI*3135.96*ld(7)))*exp(-ld(7)*2.4)))",
+      "filtros": "highpass=f=35,aecho=0.8:0.45:90|170:0.3|0.2"
+    },
+    "tecleo": {
+      "d": 0.6,
+      "ancla": "ataque",
+      "desc": "Ráfaga de 8 teclas suaves en ~0.5 s con tiempos y fuerzas irregulares.",
+      "expr": "st(1,random(9)*2-1);st(2,0.7*ld(1));if(gte(t,0),1.0*exp(-t*380)*(ld(2)+0.5*sin(2*PI*3100*t)),0)+if(gte(t,0.075),0.7*exp(-(t-0.075)*380)*(ld(2)+0.5*sin(2*PI*3100*(t-0.075))),0)+if(gte(t,0.13),0.85*exp(-(t-0.13)*380)*(ld(2)+0.5*sin(2*PI*2900*(t-0.13))),0)+if(gte(t,0.205),0.6*exp(-(t-0.205)*380)*(ld(2)+0.5*sin(2*PI*3100*(t-0.205))),0)+if(gte(t,0.27),0.9*exp(-(t-0.27)*380)*(ld(2)+0.5*sin(2*PI*3000*(t-0.27))),0)+if(gte(t,0.335),0.65*exp(-(t-0.335)*380)*(ld(2)+0.5*sin(2*PI*3100*(t-0.335))),0)+if(gte(t,0.41),0.8*exp(-(t-0.41)*380)*(ld(2)+0.5*sin(2*PI*2900*(t-0.41))),0)+if(gte(t,0.48),0.55*exp(-(t-0.48)*380)*(ld(2)+0.5*sin(2*PI*3100*(t-0.48))),0)",
+      "filtros": "highpass=f=900,lowpass=f=8000"
+    },
+    "notif": {
+      "d": 0.8,
+      "ancla": "ataque",
+      "desc": "Notificación de dos tonos ascendentes (B5 y E6), propia (no el tono de ningún sistema).",
+      "expr": "if(gte(t,0),(1-exp(-t/0.0015))*exp(-t*7)*(sin(2*PI*987.77*t)+0.25*sin(2*PI*1975.53*t)*exp(-t*6)),0)+if(gte(t,0.13),(1-exp(-(t-0.13)/0.0015))*exp(-(t-0.13)*5.5)*(sin(2*PI*1318.51*(t-0.13))+0.25*sin(2*PI*2637.02*(t-0.13))*exp(-(t-0.13)*6)),0)",
+      "filtros": "aecho=0.8:0.4:75:0.2"
+    }
+  }
+}

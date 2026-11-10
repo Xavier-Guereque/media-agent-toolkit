@@ -1,0 +1,19 @@
+{
+  "version": "0.0.1",
+  "configurations": [
+    {
+      "name": "tablero",
+      "runtimeExecutable": "python3",
+      "runtimeArgs": [
+        "scripts/tablero.py",
+        "--puerto",
+        "8765"
+      ],
+      "port": 8765
+    },
+    {
+      "name": "remotion-estudio",
+      "url": "http://localhost:3000"
+    }
+  ]
+}

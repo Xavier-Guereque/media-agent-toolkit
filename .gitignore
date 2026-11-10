@@ -1,0 +1,61 @@
+# Sistema operativo
+.DS_Store
+Thumbs.db
+
+# Entornos virtuales y dependencias
+node_modules/
+venv/
+.venv/
+__pycache__/
+*.pyc
+
+# Variables de entorno y secretos
+.env
+.env.local
+*.pem
+*.key
+
+# Logs
+*.log
+logs/
+
+# Builds y caché
+dist/
+build/
+.cache/
+coverage/
+
+# Editores
+.idea/
+.vscode/
+*.swp
+
+# Muestras de voz para clonación: personales, nunca se commitean
+muestras/
+
+# Planes de sesión del agente: artefactos locales, no se publican
+.kilo/plans/
+
+# Proyectos de video: la carpeta existe en blanco (con .gitkeep),
+# pero su contenido (videos, recursos, salidas) nunca se respalda en GitHub
+proyectos/*
+!proyectos/.gitkeep
+
+# Motor promo: los assets de marca privados de cada tema (logos, fuentes con licencia)
+# no se versionan; cada copia del repo los pone en promo/temas/<tema>/privado/
+promo/temas/*/privado/
+
+# Preferencias del usuario: locales a cada copia del repo, nunca se commitean
+# (así un git pull no pisa las personalizaciones de quien descargó el repo)
+docs/Preferencias-Usuario.md
+
+# Motor Remotion (opcional): las composiciones de cada proyecto y el registro generado no se versionan;
+# tampoco las salidas del Studio ni las skills oficiales instaladas con `npx skills add remotion-dev/skills`
+remotion/out/
+remotion/src/composiciones/proyectos/*
+!remotion/src/composiciones/proyectos/.gitkeep
+.agents/skills/remotion-*
+.claude/skills/remotion-*
+
+# Personalizaciones de config por copia (AGENT §16): nunca se commitea
+config.local.json

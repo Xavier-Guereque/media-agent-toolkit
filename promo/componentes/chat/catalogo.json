@@ -1,0 +1,383 @@
+{
+  "doc": "Tarjeta de app de chat (piel asistente_web o whatsapp): el usuario pide algo y el asistente responde con pasos, productos, fichas y cotización. Crece desde abajo como un chat real; cada item aparece en orden.",
+  "tinte_defecto": "teal",
+  "duracion": {
+    "min": 3.0,
+    "max": 9
+  },
+  "titular": true,
+  "subtitulo": true,
+  "props": {
+    "chat": {
+      "t": "objeto",
+      "props": {
+        "piel": {
+          "t": "enum",
+          "valores": [
+            "asistente_web",
+            "whatsapp"
+          ],
+          "defecto": "asistente_web",
+          "doc": "Aspecto de la app: asistente_web (asistente web) o whatsapp."
+        },
+        "titulo": {
+          "t": "texto",
+          "opcional": true,
+          "max_car": 20,
+          "doc": "Nombre en la cabecera. Por defecto la marca + producto (\"ACME AI\")."
+        },
+        "chip": {
+          "t": "texto",
+          "opcional": true,
+          "max_car": 18,
+          "doc": "Chip junto al título (\"Videovigilancia\"). Solo piel asistente_web."
+        },
+        "items": {
+          "t": "lista",
+          "min": 1,
+          "max": 7,
+          "de": {
+            "t": "union",
+            "nombre": "item_chat"
+          },
+          "doc": "Mensajes en orden. Del usuario: usuario, imagen, nota_voz, archivo. Del asistente: pasos, razonamiento, asistente, productos, ficha, cotizacion, toast."
+        }
+      }
+    }
+  },
+  "uniones": {
+    "item_chat": {
+      "por": "tipo",
+      "variantes": {
+        "usuario": {
+          "doc": "Burbuja del usuario (derecha).",
+          "props": {
+            "texto": {
+              "t": "texto",
+              "max_palabras": 18,
+              "max_car": 100,
+              "doc": "Lo que pide el usuario."
+            }
+          }
+        },
+        "imagen": {
+          "doc": "El usuario manda una foto; el asistente la escanea.",
+          "props": {
+            "imagen": {
+              "t": "imagen",
+              "opcional": true,
+              "doc": "Foto en recursos/ (sin fondo o sobre fondo claro). Si falta se usa el ícono."
+            },
+            "icono": {
+              "t": "enum",
+              "valores": [
+                "camara",
+                "camara_foto",
+                "disco",
+                "procesador",
+                "wifi",
+                "paquete",
+                "celular",
+                "video"
+              ],
+              "defecto": "camara",
+              "doc": "Ícono si no hay foto."
+            },
+            "texto": {
+              "t": "texto",
+              "opcional": true,
+              "max_car": 36,
+              "doc": "Pie de la foto (\"¿Tienes algo como esto?\")."
+            },
+            "escaneo": {
+              "t": "texto",
+              "opcional": true,
+              "max_car": 22,
+              "doc": "Etiqueta que aparece al terminar el escaneo (\"Domo IP 4 MP · 98 %\")."
+            }
+          }
+        },
+        "nota_voz": {
+          "doc": "Nota de voz del usuario con forma de onda que se reproduce.",
+          "props": {
+            "duracion": {
+              "t": "texto",
+              "defecto": "0:07",
+              "patron": "^\\d:\\d\\d$",
+              "max_car": 4,
+              "doc": "Duración mostrada (m:ss)."
+            },
+            "transcripcion": {
+              "t": "texto",
+              "opcional": true,
+              "max_car": 84,
+              "doc": "Transcripción corta bajo la nota."
+            }
+          }
+        },
+        "archivo": {
+          "doc": "Archivo adjunto (lista en Excel, PDF…). Por defecto lo manda el usuario; con de=asistente lo envía el asistente (p. ej. la cotización en PDF por WhatsApp).",
+          "props": {
+            "nombre": {
+              "t": "texto",
+              "max_car": 26,
+              "doc": "Nombre del archivo (\"lista_obra.xlsx\")."
+            },
+            "detalle": {
+              "t": "texto",
+              "opcional": true,
+              "max_car": 30,
+              "doc": "Detalle (\"18 partidas · XLSX · 24 KB\")."
+            },
+            "formato": {
+              "t": "enum",
+              "valores": [
+                "xlsx",
+                "pdf",
+                "doc",
+                "img"
+              ],
+              "defecto": "xlsx",
+              "doc": "Tipo de archivo (color del ícono)."
+            },
+            "de": {
+              "t": "enum",
+              "valores": [
+                "usuario",
+                "asistente"
+              ],
+              "defecto": "usuario",
+              "doc": "Quién manda el archivo."
+            }
+          }
+        },
+        "pasos": {
+          "doc": "Herramientas del asistente trabajando: pastillas que pasan de activas (azul) a hechas (verde).",
+          "props": {
+            "pasos": {
+              "t": "lista",
+              "min": 1,
+              "max": 4,
+              "de": {
+                "t": "texto",
+                "max_car": 38
+              },
+              "doc": "Cada paso (\"Buscando: bala IP 4 MP…\")."
+            }
+          }
+        },
+        "razonamiento": {
+          "doc": "Recuadro con el razonamiento del asistente (ícono de rayo).",
+          "props": {
+            "texto": {
+              "t": "texto",
+              "max_palabras": 24,
+              "max_car": 116,
+              "doc": "Cálculo corto (\"12 × 4 MP · H.265+ · 30 días ≈ 10 TB…\")."
+            }
+          }
+        },
+        "asistente": {
+          "doc": "Respuesta en texto del asistente; *énfasis* en negritas.",
+          "props": {
+            "texto": {
+              "t": "texto",
+              "max_palabras": 26,
+              "max_car": 140,
+              "enfasis": true,
+              "doc": "Respuesta (\"*5 partidas, todas con existencia.* Te dejo la cotización:\")."
+            }
+          }
+        },
+        "productos": {
+          "doc": "Solución armada: hasta 3 productos con cantidad, conectados, más accesorios.",
+          "props": {
+            "productos": {
+              "t": "lista",
+              "min": 1,
+              "max": 3,
+              "de": {
+                "t": "objeto",
+                "props": {
+                  "nombre": {
+                    "t": "texto",
+                    "max_car": 20,
+                    "doc": "Nombre corto (\"Bala IP 4 MP\")."
+                  },
+                  "modelo": {
+                    "t": "texto",
+                    "opcional": true,
+                    "max_car": 18,
+                    "doc": "Modelo real del catálogo (monoespaciado)."
+                  },
+                  "cantidad": {
+                    "t": "entero",
+                    "min": 1,
+                    "max": 999,
+                    "doc": "Cantidad (insignia ×N)."
+                  },
+                  "imagen": {
+                    "t": "imagen",
+                    "opcional": true,
+                    "doc": "Foto sin fondo en recursos/ (opcional)."
+                  },
+                  "icono": {
+                    "t": "enum",
+                    "valores": [
+                      "camara",
+                      "disco",
+                      "procesador",
+                      "wifi",
+                      "paquete",
+                      "video",
+                      "camara_foto",
+                      "celular",
+                      "base_datos",
+                      "capas"
+                    ],
+                    "defecto": "paquete",
+                    "doc": "Ícono si no hay foto."
+                  }
+                }
+              }
+            },
+            "conector": {
+              "t": "texto",
+              "opcional": true,
+              "max_car": 16,
+              "doc": "Etiqueta del enlace entre los dos primeros (\"Cat6 exterior\")."
+            },
+            "accesorios": {
+              "t": "lista",
+              "opcional": true,
+              "max": 2,
+              "de": {
+                "t": "objeto",
+                "props": {
+                  "nombre": {
+                    "t": "texto",
+                    "max_car": 20
+                  },
+                  "cantidad": {
+                    "t": "entero",
+                    "min": 1,
+                    "max": 999
+                  },
+                  "icono": {
+                    "t": "enum",
+                    "valores": [
+                      "paquete",
+                      "capas",
+                      "herramienta",
+                      "wifi",
+                      "disco",
+                      "procesador"
+                    ],
+                    "defecto": "paquete"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "ficha": {
+          "doc": "Ficha de producto identificado con existencias por sucursal y botón para agregar.",
+          "props": {
+            "marca": {
+              "t": "texto",
+              "max_car": 14,
+              "doc": "Marca (\"HIKVISION\")."
+            },
+            "nombre": {
+              "t": "texto",
+              "max_car": 32,
+              "doc": "Nombre (\"Domo IP 4 MP · Dual Light\")."
+            },
+            "modelo": {
+              "t": "texto",
+              "opcional": true,
+              "max_car": 20
+            },
+            "existencias": {
+              "t": "lista",
+              "min": 1,
+              "max": 3,
+              "de": {
+                "t": "objeto",
+                "props": {
+                  "lugar": {
+                    "t": "texto",
+                    "max_car": 14
+                  },
+                  "cantidad": {
+                    "t": "texto",
+                    "max_car": 10
+                  }
+                }
+              },
+              "doc": "Existencias por sucursal ([{\"lugar\":\"Monterrey\",\"cantidad\":\"38 pzas\"}])."
+            },
+            "imagen": {
+              "t": "imagen",
+              "opcional": true
+            },
+            "icono": {
+              "t": "enum",
+              "valores": [
+                "camara",
+                "camara_foto",
+                "disco",
+                "procesador",
+                "wifi",
+                "paquete",
+                "video"
+              ],
+              "defecto": "camara"
+            },
+            "boton": {
+              "t": "texto",
+              "defecto": "Agregar",
+              "max_car": 12
+            },
+            "toast": {
+              "t": "texto",
+              "opcional": true,
+              "max_car": 28,
+              "doc": "Aviso al agregar (\"Agregado a tu carrito\")."
+            }
+          }
+        },
+        "cotizacion": {
+          "doc": "Documento generado (PDF) con botón de envío.",
+          "props": {
+            "titulo": {
+              "t": "texto",
+              "max_car": 28,
+              "doc": "\"Cotización para tu cliente\"."
+            },
+            "detalle": {
+              "t": "texto",
+              "opcional": true,
+              "max_car": 32,
+              "doc": "\"Con tu logo · 5 partidas · PDF\"."
+            },
+            "boton": {
+              "t": "texto",
+              "defecto": "Enviar",
+              "max_car": 12
+            }
+          }
+        },
+        "toast": {
+          "doc": "Aviso breve de confirmación (check verde).",
+          "props": {
+            "texto": {
+              "t": "texto",
+              "max_car": 32
+            }
+          }
+        }
+      }
+    }
+  }
+}

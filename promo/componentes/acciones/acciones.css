@@ -1,0 +1,204 @@
+/* acciones — tarjetas de "soporte en obra". Medidas y colores tomados de la referencia (1080×1920):
+   tarjeta #1a1c20 de 880×219 (radio 28), recuadro de ícono 78 px #25272b, fila de estado #111317. */
+
+.ac-pila {
+  position: absolute;
+  left: 100px;
+  top: 604px;
+  width: 880px;
+  height: 0;
+}
+
+.ac-tarjeta.ui-tarjeta {
+  position: absolute;
+  left: 0;
+  width: 880px;
+  height: 219px;
+  border-radius: 28px;
+  background: var(--c-tarjeta2);
+  border-color: rgba(255, 255, 255, 0.09);
+  box-shadow: 0 26px 60px rgba(0, 0, 0, 0.38), 0 0 0 1px rgba(0, 0, 0, 0.3), inset 0 1px 0 rgba(255, 255, 255, 0.035);
+  transform-origin: 50% 50%;
+}
+
+/* Recuadro del ícono: trazo azul claro con un relleno tenue (duotono), como los glifos llenos del original. */
+.ac-ico {
+  position: absolute;
+  left: 29px;
+  top: 29px;
+  width: 78px;
+  height: 78px;
+  border-radius: 18px;
+  background: #25272b;
+  border: 1.5px solid rgba(255, 255, 255, 0.05);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--c-marca-claro);
+}
+.ac-ico svg { fill: rgba(152, 182, 245, 0.3); }
+.ac-ico svg.ic-solido { fill: none; }
+.ac-ico svg .ic-s { fill: currentColor; }
+.ac-ico svg .ic-h { fill: none; stroke: #25272b; stroke-width: 2.3; }
+.ac-ico svg .ic-a { fill: #25272b; }
+
+.ac-titulo,
+.ac-detalle {
+  position: absolute;
+  left: 133px;
+  width: 718px;
+  white-space: nowrap;
+  overflow: hidden;
+  line-height: 1.2;
+}
+.ac-titulo {
+  top: 32px;
+  font-size: 30px;
+  font-weight: 500;
+  color: var(--c-texto);
+  letter-spacing: 0.012em;
+}
+.ac-detalle {
+  top: 75px;
+  font-size: 23px;
+  font-weight: 400;
+  color: var(--c-atenuado);
+  letter-spacing: 0.016em;
+}
+.ac-sin-detalle .ac-titulo { top: 49px; }
+
+/* Fila de estado (recuadro interno). */
+.ac-fila {
+  position: absolute;
+  left: 29px;
+  right: 29px;
+  top: 133px;
+  height: 57px;
+  border-radius: 14px;
+  background: #111317;
+  border: 1.5px solid rgba(255, 255, 255, 0.1);
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  padding: 0 17px 0 18px;
+}
+
+.ac-estado {
+  position: relative;
+  flex: none;
+  width: 28px;
+  height: 28px;
+}
+.ac-estado > * { position: absolute; left: 0; top: 0; }
+.ac-giro { display: block; transform-origin: 50% 50%; }
+.ac-check { display: block; width: 28px; height: 28px; transform-origin: 50% 50%; }
+.ac-check svg { display: block; }
+.ac-halo {
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  border: 2px solid rgba(62, 207, 122, 0.9);
+  transform-origin: 50% 50%;
+}
+
+/* Los dos estados comparten la misma celda: el cruce no mueve nada. */
+.ac-textos {
+  flex: 1 1 auto;
+  min-width: 0;
+  display: grid;
+}
+.ac-proceso,
+.ac-listo {
+  grid-area: 1 / 1;
+  display: block;
+  white-space: nowrap;
+  overflow: hidden;
+  font-size: 24px;
+  line-height: 1.25;
+  font-weight: 500;
+  letter-spacing: 0.018em;
+}
+.ac-proceso { color: #d9dce2; }
+.ac-listo { color: var(--c-exito); }
+.ac-listo .ac-folio {
+  font-family: var(--f-mono);
+  font-weight: 500;
+  font-size: 0.96em;
+  letter-spacing: 0.035em;
+  margin: 0 0.18em;
+}
+
+.ac-boton {
+  flex: none;
+  display: inline-flex;
+  align-items: center;
+  height: 39px;
+  padding: 0 16px;
+  border-radius: 10px;
+  background: #25272b;
+  border: 1.5px solid rgba(255, 255, 255, 0.12);
+  color: #eef0f3;
+  font-size: 22px;
+  font-weight: 600;
+  letter-spacing: 0.01em;
+  white-space: nowrap;
+  overflow: hidden;
+}
+
+/* Rastreo: origen · pista con hitos · estado actual. */
+.ac-fila-rastreo { gap: 0; padding: 0 19px 0 19px; }
+.ac-ini,
+.ac-fin {
+  flex: none;
+  white-space: nowrap;
+  overflow: hidden;
+  font-size: 24px;
+  font-weight: 500;
+  color: #d9dce2;
+  letter-spacing: 0.012em;
+  line-height: 1.25;
+}
+.ac-ini { max-width: 170px; margin-right: 34px; }
+.ac-fin { max-width: 330px; margin-left: 34px; }
+.ac-pista {
+  position: relative;
+  flex: 1 1 auto;
+  min-width: 200px;
+  height: 14px;
+}
+.ac-base,
+.ac-relleno {
+  position: absolute;
+  left: 0;
+  right: 0;
+  top: 5px;
+  height: 4px;
+  border-radius: 2px;
+}
+.ac-base { background: rgba(255, 255, 255, 0.16); }
+.ac-relleno {
+  background: var(--c-exito);
+  transform-origin: 0 50%;
+  box-shadow: 0 0 10px rgba(62, 207, 122, 0.35);
+}
+.ac-hito {
+  position: absolute;
+  top: 0;
+  width: 14px;
+  height: 14px;
+  margin-left: -7px;
+  border-radius: 50%;
+  background: #4a4c54;
+}
+.ac-hito:nth-of-type(1) { left: 0; }
+.ac-hito:nth-of-type(2) { left: 50%; }
+.ac-hito:nth-of-type(3) { left: 100%; }
+.ac-cabeza {
+  position: absolute;
+  left: -13px;
+  top: -6px;
+  width: 26px;
+  height: 26px;
+  border-radius: 50%;
+  background: radial-gradient(circle, rgba(236, 255, 244, 0.95) 0%, rgba(110, 231, 163, 0.55) 30%, rgba(62, 207, 122, 0) 68%);
+}

@@ -1,0 +1,1706 @@
+{
+ "$schema": "https://json-schema.org/draft/2020-12/schema",
+ "$id": "media-agent-toolkit/promo.schema.json",
+ "title": "promo.json — spec del motor promo",
+ "description": "Solo contenido: el motor calcula tiempos, posiciones y colores. Ver docs/Motor-Promo.md.",
+ "type": "object",
+ "properties": {
+  "version": {
+   "type": "integer",
+   "minimum": 1,
+   "maximum": 1,
+   "description": "Versión del formato del spec."
+  },
+  "formato": {
+   "type": "string",
+   "enum": [
+    "promo_ui"
+   ],
+   "description": "Formato de video."
+  },
+  "tema": {
+   "type": "string",
+   "enum": [
+    "neutro"
+   ],
+   "description": "Tema visual (colores, fuentes, marca)."
+  },
+  "semilla": {
+   "type": "integer",
+   "minimum": 0,
+   "maximum": 99999,
+   "description": "Semilla del azar determinista (starburst, variaciones)."
+  },
+  "salida": {
+   "type": "object",
+   "properties": {
+    "relacion": {
+     "type": "string",
+     "enum": [
+      "9:16"
+     ],
+     "description": "Relación de aspecto."
+    },
+    "duracion": {
+     "type": "number",
+     "minimum": 6,
+     "maximum": 60,
+     "description": "Duración objetivo en segundos; el planificador ajusta las escenas a este total."
+    },
+    "archivo": {
+     "type": "string",
+     "maxLength": 80,
+     "pattern": "^[a-z0-9][a-z0-9._-]*\\.mp4$",
+     "description": "Nombre del MP4 final (minúsculas, sin espacios). Por defecto <slug>.mp4."
+    }
+   },
+   "additionalProperties": false
+  },
+  "marca": {
+   "type": "object",
+   "properties": {
+    "producto": {
+     "type": "string",
+     "maxLength": 12,
+     "description": "Producto junto al logo, SIN repetir la marca (\"AI\", \"PRO\"). Vacío = solo logo."
+    },
+    "version": {
+     "type": "string",
+     "maxLength": 6,
+     "description": "Pastilla de versión (\"v5\"). Vacío = sin pastilla."
+    }
+   },
+   "additionalProperties": false
+  },
+  "audio": {
+   "type": "object",
+   "properties": {
+    "musica": {
+     "type": "object",
+     "properties": {
+      "tipo": {
+       "type": "string",
+       "enum": [
+        "procedural",
+        "archivo",
+        "cc0",
+        "ninguna"
+       ],
+       "description": "procedural = cama generada con FFmpeg (defecto); archivo = pista propia libre de derechos; cc0 = pista/loop CC0 descargado de Openverse (scripts/fetch_audio.py); ninguna = sin música."
+      },
+      "archivo": {
+       "type": "string",
+       "maxLength": 200,
+       "description": "Ruta de la pista (relativa a la raíz del repo o absoluta). Requerido si tipo=archivo."
+      },
+      "inicio": {
+       "type": "number",
+       "minimum": 0,
+       "maximum": 600,
+       "description": "Segundo de la pista donde empezar; vacío = el motor elige la ventana con más energía."
+      },
+      "bpm": {
+       "type": "integer",
+       "minimum": 70,
+       "maximum": 150,
+       "description": "Tempo de la cama procedural; también alinea los cortes de escena al pulso."
+      },
+      "busqueda": {
+       "type": "string",
+       "maxLength": 60,
+       "description": "Búsqueda para tipo cc0 (p. ej. \"corporate technology loop\"). Vacío = búsqueda por defecto del motor."
+      }
+     },
+     "additionalProperties": false
+    },
+    "sfx": {
+     "type": "string",
+     "enum": [
+      "ninguno",
+      "sutil",
+      "normal"
+     ],
+     "description": "Nivel de efectos de sonido (pop, tick, whoosh…) sincronizados con la animación."
+    },
+    "sfx_fuente": {
+     "type": "string",
+     "enum": [
+      "procedural",
+      "cc0"
+     ],
+     "description": "De dónde salen los efectos: sintetizados con FFmpeg o descargados CC0 (Openverse). Si no hay CC0 para un efecto, se usa el procedural."
+    },
+    "voz": {
+     "anyOf": [
+      {
+       "type": "null"
+      },
+      {
+       "type": "object",
+       "properties": {
+        "voz": {
+         "type": "string",
+         "enum": [
+          "coral",
+          "alloy",
+          "ash",
+          "ballad",
+          "echo",
+          "sage",
+          "shimmer",
+          "verse",
+          "nova",
+          "onyx"
+         ],
+         "description": "Voz de gpt-audio-mini (solo proveedor gpt-audio)."
+        },
+        "proveedor": {
+         "type": "string",
+         "enum": [
+          "fish",
+          "gpt-audio",
+          "elevenlabs"
+         ],
+         "description": "fish = TTS puro de OpenRouter (lee al pie de la letra; recomendado); gpt-audio = gpt-audio-mini (admite voz y estilo, pero puede \"contestar\" fragmentos); elevenlabs solo si hay ELEVENLABS_API_KEY y el usuario lo pidió (AGENT §5)."
+        },
+        "estilo": {
+         "type": "string",
+         "maxLength": 120,
+         "description": "Tono en pocas palabras, solo proveedor gpt-audio (\"cálido, seguro, ritmo ágil\")."
+        }
+       },
+       "additionalProperties": false
+      }
+     ],
+     "description": "Voz en off: SOLO si el usuario la pide. null = sin voz. Se locuta el texto de los `subtitulo` (la pastilla hace karaoke con la voz real)."
+    }
+   },
+   "additionalProperties": false
+  },
+  "hechos": {
+   "type": "object",
+   "additionalProperties": {
+    "type": "string",
+    "maxLength": 220
+   },
+   "description": "Hechos reales confirmados con su fuente: {\"h1\": \"… (fuente: …)\"}. Las escenas de demo los citan en `respaldo`."
+  },
+  "estilo": {
+   "type": "object",
+   "properties": {
+    "kicker": {
+     "type": "boolean",
+     "description": "Kicker numerado \"01 · SECCIÓN\": desactivado por regla de la casa (se ve como diapositivas)."
+    }
+   },
+   "additionalProperties": false
+  },
+  "escenas": {
+   "type": "array",
+   "items": {
+    "$ref": "#/$defs/escena"
+   },
+   "minItems": 2,
+   "maxItems": 10,
+   "description": "Escenas en orden. Sin tiempos: el motor los calcula."
+  },
+  "$schema": {
+   "type": "string"
+  }
+ },
+ "required": [
+  "escenas"
+ ],
+ "additionalProperties": false,
+ "$defs": {
+  "escena_acciones": {
+   "description": "Soporte en obra: pila de 1–3 tarjetas de acción que aparecen una a una (x 100–980, desde y≈604). Una \"tarea\" pasa de en proceso (giro + texto) a lista (check verde + texto; botón opcional); un \"rastreo\" muestra la pista del envío que avanza. Con un titular de N frases (una pregunta por tarjeta), cada tarjeta aparece con su frase.",
+   "type": "object",
+   "properties": {
+    "acciones": {
+     "type": "array",
+     "items": {
+      "$ref": "#/$defs/accion"
+     },
+     "minItems": 1,
+     "maxItems": 3,
+     "description": "Tarjetas en orden de aparición: {\"tipo\": \"tarea\", …} o {\"tipo\": \"rastreo\", …}."
+    },
+    "id": {
+     "type": "string",
+     "maxLength": 24,
+     "pattern": "^[a-z0-9][a-z0-9_-]*$",
+     "description": "Identificador corto (minúsculas). Por defecto e1, e2…"
+    },
+    "duracion": {
+     "type": "number",
+     "minimum": 1.5,
+     "maximum": 12,
+     "description": "Fija la duración de esta escena (s). Úsalo solo si hace falta; el motor la calcula sola."
+    },
+    "tinte": {
+     "type": "string",
+     "enum": [
+      "ninguno",
+      "teal",
+      "azul_rojo",
+      "verde",
+      "granate",
+      "violeta",
+      "petroleo",
+      "marino"
+     ],
+     "description": "Color del resplandor de fondo de la escena."
+    },
+    "respaldo": {
+     "type": "array",
+     "items": {
+      "type": "string",
+      "description": "Id (clave de \"hechos\")."
+     },
+     "minItems": 1,
+     "maxItems": 4,
+     "description": "Ids de `hechos` que respaldan lo que muestra la escena."
+    },
+    "notas": {
+     "type": "string",
+     "maxLength": 400,
+     "description": "Notas internas; no se muestran."
+    },
+    "tipo": {
+     "type": "string",
+     "enum": [
+      "acciones"
+     ],
+     "description": "Soporte en obra: pila de 1–3 tarjetas de acción que aparecen una a una (x 100–980, desde y≈604). Una \"tarea\" pasa de en proceso (giro + texto) a lista (check verde + texto; botón opcional); un \"rastreo\" muestra la pista del envío que avanza. Con un titular de N frases (una pregunta por tarjeta), cada tarjeta aparece con su frase."
+    },
+    "titular": {
+     "anyOf": [
+      {
+       "type": "string",
+       "maxLength": 100,
+       "description": "Cita grande arriba. Máximo 16 palabras."
+      },
+      {
+       "type": "array",
+       "items": {
+        "type": "string",
+        "maxLength": 100,
+        "description": "Cita grande arriba. Máximo 16 palabras."
+       },
+       "minItems": 1,
+       "maxItems": 3
+      }
+     ],
+     "description": "Cita grande arriba."
+    },
+    "subtitulo": {
+     "anyOf": [
+      {
+       "type": "string",
+       "maxLength": 48,
+       "description": "Pastilla inferior tipo subtítulo. Máximo 8 palabras."
+      },
+      {
+       "type": "array",
+       "items": {
+        "type": "string",
+        "maxLength": 48,
+        "description": "Pastilla inferior tipo subtítulo. Máximo 8 palabras."
+       },
+       "minItems": 1,
+       "maxItems": 3
+      }
+     ],
+     "description": "Pastilla inferior tipo subtítulo."
+    }
+   },
+   "required": [
+    "acciones",
+    "tipo"
+   ],
+   "additionalProperties": false
+  },
+  "escena_chat": {
+   "description": "Tarjeta de app de chat (piel asistente_web o whatsapp): el usuario pide algo y el asistente responde con pasos, productos, fichas y cotización. Crece desde abajo como un chat real; cada item aparece en orden.",
+   "type": "object",
+   "properties": {
+    "chat": {
+     "type": "object",
+     "properties": {
+      "piel": {
+       "type": "string",
+       "enum": [
+        "asistente_web",
+        "whatsapp"
+       ],
+       "description": "Aspecto de la app: asistente_web (asistente web) o whatsapp."
+      },
+      "titulo": {
+       "type": "string",
+       "maxLength": 20,
+       "description": "Nombre en la cabecera. Por defecto la marca + producto (\"ACME AI\")."
+      },
+      "chip": {
+       "type": "string",
+       "maxLength": 18,
+       "description": "Chip junto al título (\"Videovigilancia\"). Solo piel asistente_web."
+      },
+      "items": {
+       "type": "array",
+       "items": {
+        "$ref": "#/$defs/item_chat"
+       },
+       "minItems": 1,
+       "maxItems": 7,
+       "description": "Mensajes en orden. Del usuario: usuario, imagen, nota_voz, archivo. Del asistente: pasos, razonamiento, asistente, productos, ficha, cotizacion, toast."
+      }
+     },
+     "required": [
+      "items"
+     ],
+     "additionalProperties": false
+    },
+    "id": {
+     "type": "string",
+     "maxLength": 24,
+     "pattern": "^[a-z0-9][a-z0-9_-]*$",
+     "description": "Identificador corto (minúsculas). Por defecto e1, e2…"
+    },
+    "duracion": {
+     "type": "number",
+     "minimum": 1.5,
+     "maximum": 12,
+     "description": "Fija la duración de esta escena (s). Úsalo solo si hace falta; el motor la calcula sola."
+    },
+    "tinte": {
+     "type": "string",
+     "enum": [
+      "ninguno",
+      "teal",
+      "azul_rojo",
+      "verde",
+      "granate",
+      "violeta",
+      "petroleo",
+      "marino"
+     ],
+     "description": "Color del resplandor de fondo de la escena."
+    },
+    "respaldo": {
+     "type": "array",
+     "items": {
+      "type": "string",
+      "description": "Id (clave de \"hechos\")."
+     },
+     "minItems": 1,
+     "maxItems": 4,
+     "description": "Ids de `hechos` que respaldan lo que muestra la escena."
+    },
+    "notas": {
+     "type": "string",
+     "maxLength": 400,
+     "description": "Notas internas; no se muestran."
+    },
+    "tipo": {
+     "type": "string",
+     "enum": [
+      "chat"
+     ],
+     "description": "Tarjeta de app de chat (piel asistente_web o whatsapp): el usuario pide algo y el asistente responde con pasos, productos, fichas y cotización. Crece desde abajo como un chat real; cada item aparece en orden."
+    },
+    "titular": {
+     "anyOf": [
+      {
+       "type": "string",
+       "maxLength": 100,
+       "description": "Cita grande arriba. Máximo 16 palabras."
+      },
+      {
+       "type": "array",
+       "items": {
+        "type": "string",
+        "maxLength": 100,
+        "description": "Cita grande arriba. Máximo 16 palabras."
+       },
+       "minItems": 1,
+       "maxItems": 3
+      }
+     ],
+     "description": "Cita grande arriba."
+    },
+    "subtitulo": {
+     "anyOf": [
+      {
+       "type": "string",
+       "maxLength": 48,
+       "description": "Pastilla inferior tipo subtítulo. Máximo 8 palabras."
+      },
+      {
+       "type": "array",
+       "items": {
+        "type": "string",
+        "maxLength": 48,
+        "description": "Pastilla inferior tipo subtítulo. Máximo 8 palabras."
+       },
+       "minItems": 1,
+       "maxItems": 3
+      }
+     ],
+     "description": "Pastilla inferior tipo subtítulo."
+    }
+   },
+   "required": [
+    "chat",
+    "tipo"
+   ],
+   "additionalProperties": false
+  },
+  "escena_cierre": {
+   "description": "Final: logo + lema + botón de llamada a la acción + contacto + aviso \"Interfaz y datos ilustrativos.\" (lo pone el tema).",
+   "type": "object",
+   "properties": {
+    "lema": {
+     "type": "string",
+     "maxLength": 40,
+     "description": "Lema corto con *énfasis* (\"AI para *PROs.*\"). Máximo 6 palabras. Permite *énfasis* con asteriscos."
+    },
+    "cta": {
+     "type": "object",
+     "properties": {
+      "texto": {
+       "type": "string",
+       "maxLength": 30,
+       "description": "Texto del botón (\"Escríbele por WhatsApp\"). Máximo 5 palabras."
+      },
+      "icono": {
+       "type": "string",
+       "enum": [
+        "whatsapp",
+        "telefono",
+        "web",
+        "descarga",
+        "correo",
+        "ninguno"
+       ],
+       "description": "Ícono del botón."
+      }
+     },
+     "required": [
+      "texto"
+     ],
+     "additionalProperties": false
+    },
+    "contacto": {
+     "type": "string",
+     "maxLength": 52,
+     "description": "Línea de contacto (\"+52 55 0000 0000 · acme.example · App ACME PRO\")."
+    },
+    "aviso": {
+     "type": "boolean",
+     "description": "Mostrar \"Interfaz y datos ilustrativos.\" (obligatorio si hay UI o datos simulados)."
+    },
+    "id": {
+     "type": "string",
+     "maxLength": 24,
+     "pattern": "^[a-z0-9][a-z0-9_-]*$",
+     "description": "Identificador corto (minúsculas). Por defecto e1, e2…"
+    },
+    "duracion": {
+     "type": "number",
+     "minimum": 1.5,
+     "maximum": 12,
+     "description": "Fija la duración de esta escena (s). Úsalo solo si hace falta; el motor la calcula sola."
+    },
+    "tinte": {
+     "type": "string",
+     "enum": [
+      "ninguno",
+      "teal",
+      "azul_rojo",
+      "verde",
+      "granate",
+      "violeta",
+      "petroleo",
+      "marino"
+     ],
+     "description": "Color del resplandor de fondo de la escena."
+    },
+    "respaldo": {
+     "type": "array",
+     "items": {
+      "type": "string",
+      "description": "Id (clave de \"hechos\")."
+     },
+     "minItems": 1,
+     "maxItems": 4,
+     "description": "Ids de `hechos` que respaldan lo que muestra la escena."
+    },
+    "notas": {
+     "type": "string",
+     "maxLength": 400,
+     "description": "Notas internas; no se muestran."
+    },
+    "tipo": {
+     "type": "string",
+     "enum": [
+      "cierre"
+     ],
+     "description": "Final: logo + lema + botón de llamada a la acción + contacto + aviso \"Interfaz y datos ilustrativos.\" (lo pone el tema)."
+    }
+   },
+   "required": [
+    "lema",
+    "cta",
+    "tipo"
+   ],
+   "additionalProperties": false
+  },
+  "escena_diagrama": {
+   "description": "Memoria / integración: fila de 2–4 orígenes (ícono + nombre) cuyas líneas punteadas fluyen hacia una pastilla central con brillo; debajo, chips de contexto y un chat breve (pregunta del usuario → \"pensando\" → respuesta con *negritas*).",
+   "type": "object",
+   "properties": {
+    "nodos": {
+     "type": "array",
+     "items": {
+      "type": "object",
+      "properties": {
+       "icono": {
+        "type": "string",
+        "enum": [
+         "web",
+         "whatsapp",
+         "app",
+         "telefono",
+         "correo",
+         "chat",
+         "tienda",
+         "usuario",
+         "bot",
+         "camara",
+         "carrito",
+         "datos",
+         "calendario"
+        ],
+        "description": "Ícono del origen (web = globo, app = teléfono, datos = base de datos…)."
+       },
+       "texto": {
+        "type": "string",
+        "maxLength": 15,
+        "description": "Nombre corto del origen (\"WhatsApp\", \"App ACME PRO\"). Máximo 3 palabras."
+       }
+      },
+      "required": [
+       "icono",
+       "texto"
+      ],
+      "additionalProperties": false
+     },
+     "minItems": 2,
+     "maxItems": 4,
+     "description": "Orígenes de la fila superior, de izquierda a derecha."
+    },
+    "centro": {
+     "type": "string",
+     "maxLength": 14,
+     "description": "Texto de la pastilla central (\"Memoria\"). Máximo 2 palabras."
+    },
+    "icono_centro": {
+     "type": "string",
+     "enum": [
+      "chispas",
+      "cerebro",
+      "datos",
+      "capas"
+     ],
+     "description": "Ícono de la pastilla central (chispas = IA)."
+    },
+    "chips": {
+     "type": "array",
+     "items": {
+      "type": "string",
+      "maxLength": 34,
+      "description": "Etiqueta gris + *valor en blanco*: \"Proyecto *Bodega Monterrey*\". Máximo 4 palabras. Permite *énfasis* con asteriscos."
+     },
+     "minItems": 1,
+     "maxItems": 3,
+     "description": "Chips de contexto recordado bajo la pastilla (los tres juntos deben caber en una fila)."
+    },
+    "pregunta": {
+     "type": "string",
+     "maxLength": 48,
+     "description": "Mensaje del usuario en la burbuja derecha (\"¿Cómo quedó lo de la bodega?\"). Máximo 9 palabras."
+    },
+    "pensando": {
+     "type": "string",
+     "maxLength": 28,
+     "description": "Estado mientras la IA recuerda (\"Recordando tus proyectos\"); se reemplaza por la respuesta. Máximo 4 palabras."
+    },
+    "respuesta": {
+     "type": "string",
+     "maxLength": 164,
+     "description": "Respuesta del asistente (hasta 4 renglones); *énfasis* = negritas en blanco (\"Tu cotización de la *bodega en Monterrey* sigue abierta…\"). Máximo 26 palabras. Permite *énfasis* con asteriscos."
+    },
+    "id": {
+     "type": "string",
+     "maxLength": 24,
+     "pattern": "^[a-z0-9][a-z0-9_-]*$",
+     "description": "Identificador corto (minúsculas). Por defecto e1, e2…"
+    },
+    "duracion": {
+     "type": "number",
+     "minimum": 1.5,
+     "maximum": 12,
+     "description": "Fija la duración de esta escena (s). Úsalo solo si hace falta; el motor la calcula sola."
+    },
+    "tinte": {
+     "type": "string",
+     "enum": [
+      "ninguno",
+      "teal",
+      "azul_rojo",
+      "verde",
+      "granate",
+      "violeta",
+      "petroleo",
+      "marino"
+     ],
+     "description": "Color del resplandor de fondo de la escena."
+    },
+    "respaldo": {
+     "type": "array",
+     "items": {
+      "type": "string",
+      "description": "Id (clave de \"hechos\")."
+     },
+     "minItems": 1,
+     "maxItems": 4,
+     "description": "Ids de `hechos` que respaldan lo que muestra la escena."
+    },
+    "notas": {
+     "type": "string",
+     "maxLength": 400,
+     "description": "Notas internas; no se muestran."
+    },
+    "tipo": {
+     "type": "string",
+     "enum": [
+      "diagrama"
+     ],
+     "description": "Memoria / integración: fila de 2–4 orígenes (ícono + nombre) cuyas líneas punteadas fluyen hacia una pastilla central con brillo; debajo, chips de contexto y un chat breve (pregunta del usuario → \"pensando\" → respuesta con *negritas*)."
+    },
+    "titular": {
+     "anyOf": [
+      {
+       "type": "string",
+       "maxLength": 100,
+       "description": "Cita grande arriba. Máximo 16 palabras."
+      },
+      {
+       "type": "array",
+       "items": {
+        "type": "string",
+        "maxLength": 100,
+        "description": "Cita grande arriba. Máximo 16 palabras."
+       },
+       "minItems": 1,
+       "maxItems": 3
+      }
+     ],
+     "description": "Cita grande arriba."
+    },
+    "subtitulo": {
+     "anyOf": [
+      {
+       "type": "string",
+       "maxLength": 48,
+       "description": "Pastilla inferior tipo subtítulo. Máximo 8 palabras."
+      },
+      {
+       "type": "array",
+       "items": {
+        "type": "string",
+        "maxLength": 48,
+        "description": "Pastilla inferior tipo subtítulo. Máximo 8 palabras."
+       },
+       "minItems": 1,
+       "maxItems": 3
+      }
+     ],
+     "description": "Pastilla inferior tipo subtítulo."
+    }
+   },
+   "required": [
+    "nodos",
+    "centro",
+    "pregunta",
+    "respuesta",
+    "tipo"
+   ],
+   "additionalProperties": false
+  },
+  "escena_intro": {
+   "description": "Arranque: salto al hiperespacio (líneas radiales) con un título grande; luego aparece la marca (logo + producto + versión).",
+   "type": "object",
+   "properties": {
+    "titulo": {
+     "type": "string",
+     "maxLength": 36,
+     "description": "Título corto; *énfasis* en la palabra clave (\"AI para *PROs*\"). Máximo 5 palabras. Permite *énfasis* con asteriscos."
+    },
+    "marca": {
+     "type": "boolean",
+     "description": "Mostrar el lockup de marca después del salto."
+    },
+    "id": {
+     "type": "string",
+     "maxLength": 24,
+     "pattern": "^[a-z0-9][a-z0-9_-]*$",
+     "description": "Identificador corto (minúsculas). Por defecto e1, e2…"
+    },
+    "duracion": {
+     "type": "number",
+     "minimum": 1.5,
+     "maximum": 12,
+     "description": "Fija la duración de esta escena (s). Úsalo solo si hace falta; el motor la calcula sola."
+    },
+    "tinte": {
+     "type": "string",
+     "enum": [
+      "ninguno",
+      "teal",
+      "azul_rojo",
+      "verde",
+      "granate",
+      "violeta",
+      "petroleo",
+      "marino"
+     ],
+     "description": "Color del resplandor de fondo de la escena."
+    },
+    "respaldo": {
+     "type": "array",
+     "items": {
+      "type": "string",
+      "description": "Id (clave de \"hechos\")."
+     },
+     "minItems": 1,
+     "maxItems": 4,
+     "description": "Ids de `hechos` que respaldan lo que muestra la escena."
+    },
+    "notas": {
+     "type": "string",
+     "maxLength": 400,
+     "description": "Notas internas; no se muestran."
+    },
+    "tipo": {
+     "type": "string",
+     "enum": [
+      "intro"
+     ],
+     "description": "Arranque: salto al hiperespacio (líneas radiales) con un título grande; luego aparece la marca (logo + producto + versión)."
+    }
+   },
+   "required": [
+    "titulo",
+    "tipo"
+   ],
+   "additionalProperties": false
+  },
+  "escena_telefono": {
+   "description": "App móvil: teléfono tipo iPhone (sin logos de Apple) con la app de la marca: barra de búsqueda con IA que pasa a \"Escuchando\" al tocar el micrófono, 1–2 widgets (lista con puntos de estado o cifra grande) y el ícono de la app; al final baja una notificación con la respuesta.",
+   "type": "object",
+   "properties": {
+    "app": {
+     "type": "string",
+     "maxLength": 16,
+     "description": "Nombre de la app bajo su ícono (\"ACME PRO\"). El ícono usa la inicial del logo de la marca. Máximo 3 palabras."
+    },
+    "busqueda": {
+     "type": "string",
+     "maxLength": 16,
+     "description": "Texto guía de la barra de búsqueda. Máximo 4 palabras."
+    },
+    "escucha": {
+     "type": "string",
+     "maxLength": 11,
+     "description": "Estado al tocar el micrófono (va seguido de la onda de voz). Máximo 1 palabras."
+    },
+    "widgets": {
+     "type": "array",
+     "items": {
+      "$ref": "#/$defs/widget_tel"
+     },
+     "minItems": 1,
+     "maxItems": 2,
+     "description": "Widgets de la pantalla de inicio: {\"tipo\": \"lista\", …} o {\"tipo\": \"cifra\", …}."
+    },
+    "notificacion": {
+     "type": "object",
+     "properties": {
+      "titulo": {
+       "type": "string",
+       "maxLength": 18,
+       "description": "Remitente de la notificación (\"ACME AI\"). Máximo 3 palabras."
+      },
+      "texto": {
+       "type": "string",
+       "maxLength": 104,
+       "description": "Mensaje (hasta 3 renglones): \"Sí, hay NVR de 32 canales con PoE+ en Monterrey (DS7732NXIK4/16P). ¿Lo agrego a tu carrito?\". Máximo 18 palabras."
+      }
+     },
+     "required": [
+      "titulo",
+      "texto"
+     ],
+     "additionalProperties": false,
+     "description": "Notificación que baja al final con la respuesta de la IA."
+    },
+    "id": {
+     "type": "string",
+     "maxLength": 24,
+     "pattern": "^[a-z0-9][a-z0-9_-]*$",
+     "description": "Identificador corto (minúsculas). Por defecto e1, e2…"
+    },
+    "duracion": {
+     "type": "number",
+     "minimum": 1.5,
+     "maximum": 12,
+     "description": "Fija la duración de esta escena (s). Úsalo solo si hace falta; el motor la calcula sola."
+    },
+    "tinte": {
+     "type": "string",
+     "enum": [
+      "ninguno",
+      "teal",
+      "azul_rojo",
+      "verde",
+      "granate",
+      "violeta",
+      "petroleo",
+      "marino"
+     ],
+     "description": "Color del resplandor de fondo de la escena."
+    },
+    "respaldo": {
+     "type": "array",
+     "items": {
+      "type": "string",
+      "description": "Id (clave de \"hechos\")."
+     },
+     "minItems": 1,
+     "maxItems": 4,
+     "description": "Ids de `hechos` que respaldan lo que muestra la escena."
+    },
+    "notas": {
+     "type": "string",
+     "maxLength": 400,
+     "description": "Notas internas; no se muestran."
+    },
+    "tipo": {
+     "type": "string",
+     "enum": [
+      "telefono"
+     ],
+     "description": "App móvil: teléfono tipo iPhone (sin logos de Apple) con la app de la marca: barra de búsqueda con IA que pasa a \"Escuchando\" al tocar el micrófono, 1–2 widgets (lista con puntos de estado o cifra grande) y el ícono de la app; al final baja una notificación con la respuesta."
+    },
+    "titular": {
+     "anyOf": [
+      {
+       "type": "string",
+       "maxLength": 100,
+       "description": "Cita grande arriba. Máximo 16 palabras."
+      },
+      {
+       "type": "array",
+       "items": {
+        "type": "string",
+        "maxLength": 100,
+        "description": "Cita grande arriba. Máximo 16 palabras."
+       },
+       "minItems": 1,
+       "maxItems": 3
+      }
+     ],
+     "description": "Cita grande arriba."
+    },
+    "subtitulo": {
+     "anyOf": [
+      {
+       "type": "string",
+       "maxLength": 48,
+       "description": "Pastilla inferior tipo subtítulo. Máximo 8 palabras."
+      },
+      {
+       "type": "array",
+       "items": {
+        "type": "string",
+        "maxLength": 48,
+        "description": "Pastilla inferior tipo subtítulo. Máximo 8 palabras."
+       },
+       "minItems": 1,
+       "maxItems": 3
+      }
+     ],
+     "description": "Pastilla inferior tipo subtítulo."
+    }
+   },
+   "required": [
+    "app",
+    "widgets",
+    "notificacion",
+    "tipo"
+   ],
+   "additionalProperties": false
+  },
+  "escena_texto": {
+   "description": "Enunciado grande al centro (gancho o puente) con una línea de apoyo opcional.",
+   "type": "object",
+   "properties": {
+    "texto": {
+     "type": "string",
+     "maxLength": 68,
+     "description": "Frase principal; *énfasis* en 1–2 palabras. Máximo 10 palabras. Permite *énfasis* con asteriscos."
+    },
+    "apoyo": {
+     "type": "string",
+     "maxLength": 90,
+     "description": "Línea secundaria más chica. Máximo 14 palabras."
+    },
+    "id": {
+     "type": "string",
+     "maxLength": 24,
+     "pattern": "^[a-z0-9][a-z0-9_-]*$",
+     "description": "Identificador corto (minúsculas). Por defecto e1, e2…"
+    },
+    "duracion": {
+     "type": "number",
+     "minimum": 1.5,
+     "maximum": 12,
+     "description": "Fija la duración de esta escena (s). Úsalo solo si hace falta; el motor la calcula sola."
+    },
+    "tinte": {
+     "type": "string",
+     "enum": [
+      "ninguno",
+      "teal",
+      "azul_rojo",
+      "verde",
+      "granate",
+      "violeta",
+      "petroleo",
+      "marino"
+     ],
+     "description": "Color del resplandor de fondo de la escena."
+    },
+    "respaldo": {
+     "type": "array",
+     "items": {
+      "type": "string",
+      "description": "Id (clave de \"hechos\")."
+     },
+     "minItems": 1,
+     "maxItems": 4,
+     "description": "Ids de `hechos` que respaldan lo que muestra la escena."
+    },
+    "notas": {
+     "type": "string",
+     "maxLength": 400,
+     "description": "Notas internas; no se muestran."
+    },
+    "tipo": {
+     "type": "string",
+     "enum": [
+      "texto"
+     ],
+     "description": "Enunciado grande al centro (gancho o puente) con una línea de apoyo opcional."
+    }
+   },
+   "required": [
+    "texto",
+    "tipo"
+   ],
+   "additionalProperties": false
+  },
+  "escena": {
+   "anyOf": [
+    {
+     "$ref": "#/$defs/escena_acciones"
+    },
+    {
+     "$ref": "#/$defs/escena_chat"
+    },
+    {
+     "$ref": "#/$defs/escena_cierre"
+    },
+    {
+     "$ref": "#/$defs/escena_diagrama"
+    },
+    {
+     "$ref": "#/$defs/escena_intro"
+    },
+    {
+     "$ref": "#/$defs/escena_telefono"
+    },
+    {
+     "$ref": "#/$defs/escena_texto"
+    }
+   ]
+  },
+  "accion": {
+   "anyOf": [
+    {
+     "type": "object",
+     "properties": {
+      "icono": {
+       "type": "string",
+       "enum": [
+        "llave",
+        "camion",
+        "escudo",
+        "archivo",
+        "descarga",
+        "paquete",
+        "herramienta",
+        "recibo",
+        "carrito",
+        "calendario",
+        "ubicacion",
+        "reloj",
+        "soporte",
+        "camara",
+        "disco",
+        "verificado"
+       ],
+       "description": "Ícono del recuadro izquierdo (llave = desbloqueo, escudo = garantía, archivo = documento…)."
+      },
+      "titulo": {
+       "type": "string",
+       "maxLength": 26,
+       "description": "Nombre de la acción (\"Desbloqueo HIKVISION\"). Máximo 4 palabras."
+      },
+      "detalle": {
+       "type": "string",
+       "maxLength": 40,
+       "description": "Línea gris bajo el título (\"NVR · archivo SADP adjunto\"); modelos y guías tal cual."
+      },
+      "proceso": {
+       "type": "string",
+       "maxLength": 34,
+       "description": "Estado en curso, con giro de carga (\"Generando archivo de desbloqueo…\"). Máximo 6 palabras."
+      },
+      "listo": {
+       "type": "string",
+       "maxLength": 40,
+       "description": "Estado final en verde con check (\"Archivo de desbloqueo listo\"). Un folio entre *asteriscos* sale en letra mono: \"Orden de servicio *05-48213* creada\". Máximo 6 palabras. Permite *énfasis* con asteriscos."
+      },
+      "boton": {
+       "type": "string",
+       "maxLength": 12,
+       "description": "Botón pequeño a la derecha que se habilita al terminar (\"Descargar\"). Máximo 2 palabras."
+      },
+      "tipo": {
+       "type": "string",
+       "enum": [
+        "tarea"
+       ]
+      }
+     },
+     "required": [
+      "icono",
+      "titulo",
+      "proceso",
+      "listo",
+      "tipo"
+     ],
+     "additionalProperties": false
+    },
+    {
+     "type": "object",
+     "properties": {
+      "icono": {
+       "type": "string",
+       "enum": [
+        "camion",
+        "paquete",
+        "ubicacion",
+        "reloj",
+        "calendario",
+        "carrito"
+       ],
+       "description": "Ícono del recuadro izquierdo."
+      },
+      "titulo": {
+       "type": "string",
+       "maxLength": 26,
+       "description": "Nombre de la acción (\"Rastreo por guía\"). Máximo 4 palabras."
+      },
+      "detalle": {
+       "type": "string",
+       "maxLength": 40,
+       "description": "Línea gris bajo el título (número de guía: \"4829 1057 3316\")."
+      },
+      "inicio": {
+       "type": "string",
+       "maxLength": 13,
+       "description": "Etiqueta del origen de la pista (\"Recolectado\"). Máximo 2 palabras."
+      },
+      "fin": {
+       "type": "string",
+       "maxLength": 26,
+       "description": "Estado actual, aparece al avanzar (\"En camino · llega mañana\"). Máximo 5 palabras."
+      },
+      "avance": {
+       "type": "number",
+       "minimum": 0.1,
+       "maximum": 1,
+       "description": "Qué tanto se llena la pista (0.1–1; 1 = entregado)."
+      },
+      "tipo": {
+       "type": "string",
+       "enum": [
+        "rastreo"
+       ]
+      }
+     },
+     "required": [
+      "titulo",
+      "inicio",
+      "fin",
+      "tipo"
+     ],
+     "additionalProperties": false
+    }
+   ]
+  },
+  "item_chat": {
+   "anyOf": [
+    {
+     "description": "Burbuja del usuario (derecha).",
+     "type": "object",
+     "properties": {
+      "texto": {
+       "type": "string",
+       "maxLength": 100,
+       "description": "Lo que pide el usuario. Máximo 18 palabras."
+      },
+      "tipo": {
+       "type": "string",
+       "enum": [
+        "usuario"
+       ]
+      }
+     },
+     "required": [
+      "texto",
+      "tipo"
+     ],
+     "additionalProperties": false
+    },
+    {
+     "description": "El usuario manda una foto; el asistente la escanea.",
+     "type": "object",
+     "properties": {
+      "imagen": {
+       "type": "string",
+       "description": "Foto en recursos/ (sin fondo o sobre fondo claro). Si falta se usa el ícono. Ruta relativa a recursos/ del proyecto."
+      },
+      "icono": {
+       "type": "string",
+       "enum": [
+        "camara",
+        "camara_foto",
+        "disco",
+        "procesador",
+        "wifi",
+        "paquete",
+        "celular",
+        "video"
+       ],
+       "description": "Ícono si no hay foto."
+      },
+      "texto": {
+       "type": "string",
+       "maxLength": 36,
+       "description": "Pie de la foto (\"¿Tienes algo como esto?\")."
+      },
+      "escaneo": {
+       "type": "string",
+       "maxLength": 22,
+       "description": "Etiqueta que aparece al terminar el escaneo (\"Domo IP 4 MP · 98 %\")."
+      },
+      "tipo": {
+       "type": "string",
+       "enum": [
+        "imagen"
+       ]
+      }
+     },
+     "required": [
+      "tipo"
+     ],
+     "additionalProperties": false
+    },
+    {
+     "description": "Nota de voz del usuario con forma de onda que se reproduce.",
+     "type": "object",
+     "properties": {
+      "duracion": {
+       "type": "string",
+       "maxLength": 4,
+       "pattern": "^\\d:\\d\\d$",
+       "description": "Duración mostrada (m:ss)."
+      },
+      "transcripcion": {
+       "type": "string",
+       "maxLength": 84,
+       "description": "Transcripción corta bajo la nota."
+      },
+      "tipo": {
+       "type": "string",
+       "enum": [
+        "nota_voz"
+       ]
+      }
+     },
+     "required": [
+      "tipo"
+     ],
+     "additionalProperties": false
+    },
+    {
+     "description": "Archivo adjunto (lista en Excel, PDF…). Por defecto lo manda el usuario; con de=asistente lo envía el asistente (p. ej. la cotización en PDF por WhatsApp).",
+     "type": "object",
+     "properties": {
+      "nombre": {
+       "type": "string",
+       "maxLength": 26,
+       "description": "Nombre del archivo (\"lista_obra.xlsx\")."
+      },
+      "detalle": {
+       "type": "string",
+       "maxLength": 30,
+       "description": "Detalle (\"18 partidas · XLSX · 24 KB\")."
+      },
+      "formato": {
+       "type": "string",
+       "enum": [
+        "xlsx",
+        "pdf",
+        "doc",
+        "img"
+       ],
+       "description": "Tipo de archivo (color del ícono)."
+      },
+      "de": {
+       "type": "string",
+       "enum": [
+        "usuario",
+        "asistente"
+       ],
+       "description": "Quién manda el archivo."
+      },
+      "tipo": {
+       "type": "string",
+       "enum": [
+        "archivo"
+       ]
+      }
+     },
+     "required": [
+      "nombre",
+      "tipo"
+     ],
+     "additionalProperties": false
+    },
+    {
+     "description": "Herramientas del asistente trabajando: pastillas que pasan de activas (azul) a hechas (verde).",
+     "type": "object",
+     "properties": {
+      "pasos": {
+       "type": "array",
+       "items": {
+        "type": "string",
+        "maxLength": 38
+       },
+       "minItems": 1,
+       "maxItems": 4,
+       "description": "Cada paso (\"Buscando: bala IP 4 MP…\")."
+      },
+      "tipo": {
+       "type": "string",
+       "enum": [
+        "pasos"
+       ]
+      }
+     },
+     "required": [
+      "pasos",
+      "tipo"
+     ],
+     "additionalProperties": false
+    },
+    {
+     "description": "Recuadro con el razonamiento del asistente (ícono de rayo).",
+     "type": "object",
+     "properties": {
+      "texto": {
+       "type": "string",
+       "maxLength": 116,
+       "description": "Cálculo corto (\"12 × 4 MP · H.265+ · 30 días ≈ 10 TB…\"). Máximo 24 palabras."
+      },
+      "tipo": {
+       "type": "string",
+       "enum": [
+        "razonamiento"
+       ]
+      }
+     },
+     "required": [
+      "texto",
+      "tipo"
+     ],
+     "additionalProperties": false
+    },
+    {
+     "description": "Respuesta en texto del asistente; *énfasis* en negritas.",
+     "type": "object",
+     "properties": {
+      "texto": {
+       "type": "string",
+       "maxLength": 144,
+       "description": "Respuesta (\"*5 partidas, todas con existencia.* Te dejo la cotización:\"). Máximo 26 palabras. Permite *énfasis* con asteriscos."
+      },
+      "tipo": {
+       "type": "string",
+       "enum": [
+        "asistente"
+       ]
+      }
+     },
+     "required": [
+      "texto",
+      "tipo"
+     ],
+     "additionalProperties": false
+    },
+    {
+     "description": "Solución armada: hasta 3 productos con cantidad, conectados, más accesorios.",
+     "type": "object",
+     "properties": {
+      "productos": {
+       "type": "array",
+       "items": {
+        "type": "object",
+        "properties": {
+         "nombre": {
+          "type": "string",
+          "maxLength": 20,
+          "description": "Nombre corto (\"Bala IP 4 MP\")."
+         },
+         "modelo": {
+          "type": "string",
+          "maxLength": 18,
+          "description": "Modelo real del catálogo (monoespaciado)."
+         },
+         "cantidad": {
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 999,
+          "description": "Cantidad (insignia ×N)."
+         },
+         "imagen": {
+          "type": "string",
+          "description": "Foto sin fondo en recursos/ (opcional). Ruta relativa a recursos/ del proyecto."
+         },
+         "icono": {
+          "type": "string",
+          "enum": [
+           "camara",
+           "disco",
+           "procesador",
+           "wifi",
+           "paquete",
+           "video",
+           "camara_foto",
+           "celular",
+           "base_datos",
+           "capas"
+          ],
+          "description": "Ícono si no hay foto."
+         }
+        },
+        "required": [
+         "nombre",
+         "cantidad"
+        ],
+        "additionalProperties": false
+       },
+       "minItems": 1,
+       "maxItems": 3
+      },
+      "conector": {
+       "type": "string",
+       "maxLength": 16,
+       "description": "Etiqueta del enlace entre los dos primeros (\"Cat6 exterior\")."
+      },
+      "accesorios": {
+       "type": "array",
+       "items": {
+        "type": "object",
+        "properties": {
+         "nombre": {
+          "type": "string",
+          "maxLength": 20
+         },
+         "cantidad": {
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 999
+         },
+         "icono": {
+          "type": "string",
+          "enum": [
+           "paquete",
+           "capas",
+           "herramienta",
+           "wifi",
+           "disco",
+           "procesador"
+          ]
+         }
+        },
+        "required": [
+         "nombre",
+         "cantidad"
+        ],
+        "additionalProperties": false
+       },
+       "maxItems": 2
+      },
+      "tipo": {
+       "type": "string",
+       "enum": [
+        "productos"
+       ]
+      }
+     },
+     "required": [
+      "productos",
+      "tipo"
+     ],
+     "additionalProperties": false
+    },
+    {
+     "description": "Ficha de producto identificado con existencias por sucursal y botón para agregar.",
+     "type": "object",
+     "properties": {
+      "marca": {
+       "type": "string",
+       "maxLength": 14,
+       "description": "Marca (\"HIKVISION\")."
+      },
+      "nombre": {
+       "type": "string",
+       "maxLength": 32,
+       "description": "Nombre (\"Domo IP 4 MP · Dual Light\")."
+      },
+      "modelo": {
+       "type": "string",
+       "maxLength": 20
+      },
+      "existencias": {
+       "type": "array",
+       "items": {
+        "type": "object",
+        "properties": {
+         "lugar": {
+          "type": "string",
+          "maxLength": 14
+         },
+         "cantidad": {
+          "type": "string",
+          "maxLength": 10
+         }
+        },
+        "required": [
+         "lugar",
+         "cantidad"
+        ],
+        "additionalProperties": false
+       },
+       "minItems": 1,
+       "maxItems": 3,
+       "description": "Existencias por sucursal ([{\"lugar\":\"Monterrey\",\"cantidad\":\"38 pzas\"}])."
+      },
+      "imagen": {
+       "type": "string",
+       "description": "Imagen Ruta relativa a recursos/ del proyecto."
+      },
+      "icono": {
+       "type": "string",
+       "enum": [
+        "camara",
+        "camara_foto",
+        "disco",
+        "procesador",
+        "wifi",
+        "paquete",
+        "video"
+       ]
+      },
+      "boton": {
+       "type": "string",
+       "maxLength": 12
+      },
+      "toast": {
+       "type": "string",
+       "maxLength": 28,
+       "description": "Aviso al agregar (\"Agregado a tu carrito\")."
+      },
+      "tipo": {
+       "type": "string",
+       "enum": [
+        "ficha"
+       ]
+      }
+     },
+     "required": [
+      "marca",
+      "nombre",
+      "existencias",
+      "tipo"
+     ],
+     "additionalProperties": false
+    },
+    {
+     "description": "Documento generado (PDF) con botón de envío.",
+     "type": "object",
+     "properties": {
+      "titulo": {
+       "type": "string",
+       "maxLength": 28,
+       "description": "\"Cotización para tu cliente\"."
+      },
+      "detalle": {
+       "type": "string",
+       "maxLength": 32,
+       "description": "\"Con tu logo · 5 partidas · PDF\"."
+      },
+      "boton": {
+       "type": "string",
+       "maxLength": 12
+      },
+      "tipo": {
+       "type": "string",
+       "enum": [
+        "cotizacion"
+       ]
+      }
+     },
+     "required": [
+      "titulo",
+      "tipo"
+     ],
+     "additionalProperties": false
+    },
+    {
+     "description": "Aviso breve de confirmación (check verde).",
+     "type": "object",
+     "properties": {
+      "texto": {
+       "type": "string",
+       "maxLength": 32
+      },
+      "tipo": {
+       "type": "string",
+       "enum": [
+        "toast"
+       ]
+      }
+     },
+     "required": [
+      "texto",
+      "tipo"
+     ],
+     "additionalProperties": false
+    }
+   ]
+  },
+  "widget_tel": {
+   "anyOf": [
+    {
+     "type": "object",
+     "properties": {
+      "titulo": {
+       "type": "string",
+       "maxLength": 12,
+       "description": "Encabezado del widget, se muestra en versalitas (\"Pedidos\"). Máximo 2 palabras."
+      },
+      "lineas": {
+       "type": "array",
+       "items": {
+        "type": "string",
+        "maxLength": 15,
+        "description": "Renglón de estado (\"En camino · 2\"). Los puntos van verde, azul y gris en ese orden. Máximo 4 palabras."
+       },
+       "minItems": 1,
+       "maxItems": 3,
+       "description": "Renglones con punto de color."
+      },
+      "tipo": {
+       "type": "string",
+       "enum": [
+        "lista"
+       ]
+      }
+     },
+     "required": [
+      "titulo",
+      "lineas",
+      "tipo"
+     ],
+     "additionalProperties": false
+    },
+    {
+     "type": "object",
+     "properties": {
+      "titulo": {
+       "type": "string",
+       "maxLength": 12,
+       "description": "Encabezado del widget (\"Carrito\"). Máximo 2 palabras."
+      },
+      "cifra": {
+       "type": "string",
+       "maxLength": 5,
+       "pattern": "^[0-9$.,%+kK ]+$",
+       "description": "Número grande (\"18\")."
+      },
+      "detalle": {
+       "type": "string",
+       "maxLength": 17,
+       "description": "Texto bajo la cifra (\"partidas listas\"). Máximo 3 palabras."
+      },
+      "enlace": {
+       "type": "string",
+       "maxLength": 14,
+       "description": "Enlace azul con › (\"Ver carrito\"). Máximo 3 palabras."
+      },
+      "tipo": {
+       "type": "string",
+       "enum": [
+        "cifra"
+       ]
+      }
+     },
+     "required": [
+      "titulo",
+      "cifra",
+      "tipo"
+     ],
+     "additionalProperties": false
+    }
+   ]
+  }
+ }
+}

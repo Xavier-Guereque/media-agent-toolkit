@@ -1,0 +1,262 @@
+{
+  "version": 1,
+  "_doc": "Catálogo del formato promo_ui. Aquí van la raíz del spec y las props comunes de escena; cada tipo de escena declara sus props en componentes/<tipo>/catalogo.json (se fusionan al cargar). Fuente única para el validador, el planificador, el esquema para LLM y la documentación. Los tiempos NO van aquí: cada componente los declara en su función planear().",
+  "raiz": {
+    "props": {
+      "version": {
+        "t": "entero",
+        "defecto": 1,
+        "min": 1,
+        "max": 1,
+        "doc": "Versión del formato del spec."
+      },
+      "formato": {
+        "t": "enum",
+        "valores": [
+          "promo_ui"
+        ],
+        "defecto": "promo_ui",
+        "doc": "Formato de video."
+      },
+      "tema": {
+        "t": "enum",
+        "valores": [
+          "neutro"
+        ],
+        "defecto": "neutro",
+        "doc": "Tema visual (colores, fuentes, marca)."
+      },
+      "semilla": {
+        "t": "entero",
+        "defecto": 7,
+        "min": 0,
+        "max": 99999,
+        "doc": "Semilla del azar determinista (starburst, variaciones)."
+      },
+      "salida": {
+        "t": "objeto",
+        "defecto": {},
+        "props": {
+          "relacion": {
+            "t": "enum",
+            "valores": [
+              "9:16"
+            ],
+            "defecto": "9:16",
+            "doc": "Relación de aspecto."
+          },
+          "duracion": {
+            "t": "numero",
+            "min": 6,
+            "max": 60,
+            "defecto": 30,
+            "doc": "Duración objetivo en segundos; el planificador ajusta las escenas a este total."
+          },
+          "archivo": {
+            "t": "texto",
+            "opcional": true,
+            "patron": "^[a-z0-9][a-z0-9._-]*\\.mp4$",
+            "max_car": 80,
+            "doc": "Nombre del MP4 final (minúsculas, sin espacios). Por defecto <slug>.mp4."
+          }
+        }
+      },
+      "marca": {
+        "t": "objeto",
+        "defecto": {},
+        "props": {
+          "producto": {
+            "t": "texto",
+            "opcional": true,
+            "max_car": 12,
+            "doc": "Producto junto al logo, SIN repetir la marca (\"AI\", \"PRO\"). Vacío = solo logo."
+          },
+          "version": {
+            "t": "texto",
+            "opcional": true,
+            "max_car": 6,
+            "doc": "Pastilla de versión (\"v5\"). Vacío = sin pastilla."
+          }
+        }
+      },
+      "audio": {
+        "t": "objeto",
+        "defecto": {},
+        "props": {
+          "musica": {
+            "t": "objeto",
+            "defecto": {},
+            "props": {
+              "tipo": {
+                "t": "enum",
+                "valores": [
+                  "procedural",
+                  "archivo",
+                  "cc0",
+                  "ninguna"
+                ],
+                "defecto": "procedural",
+                "doc": "procedural = cama generada con FFmpeg (defecto); archivo = pista propia libre de derechos; cc0 = pista/loop CC0 descargado de Openverse (scripts/fetch_audio.py); ninguna = sin música."
+              },
+              "archivo": {
+                "t": "texto",
+                "opcional": true,
+                "max_car": 200,
+                "doc": "Ruta de la pista (relativa a la raíz del repo o absoluta). Requerido si tipo=archivo."
+              },
+              "inicio": {
+                "t": "numero",
+                "opcional": true,
+                "min": 0,
+                "max": 600,
+                "doc": "Segundo de la pista donde empezar; vacío = el motor elige la ventana con más energía."
+              },
+              "bpm": {
+                "t": "entero",
+                "defecto": 112,
+                "min": 70,
+                "max": 150,
+                "doc": "Tempo de la cama procedural; también alinea los cortes de escena al pulso."
+              },
+              "busqueda": {
+                "t": "texto",
+                "opcional": true,
+                "max_car": 60,
+                "doc": "Búsqueda para tipo cc0 (p. ej. \"corporate technology loop\"). Vacío = búsqueda por defecto del motor."
+              }
+            }
+          },
+          "sfx": {
+            "t": "enum",
+            "valores": [
+              "ninguno",
+              "sutil",
+              "normal"
+            ],
+            "defecto": "sutil",
+            "doc": "Nivel de efectos de sonido (pop, tick, whoosh…) sincronizados con la animación."
+          },
+          "sfx_fuente": {
+            "t": "enum",
+            "valores": [
+              "procedural",
+              "cc0"
+            ],
+            "defecto": "procedural",
+            "doc": "De dónde salen los efectos: sintetizados con FFmpeg o descargados CC0 (Openverse). Si no hay CC0 para un efecto, se usa el procedural."
+          },
+          "voz": {
+            "t": "objeto",
+            "nulable": true,
+            "defecto": null,
+            "doc": "Voz en off: SOLO si el usuario la pide. null = sin voz. Se locuta el texto de los `subtitulo` (la pastilla hace karaoke con la voz real).",
+            "props": {
+              "voz": {
+                "t": "enum",
+                "valores": [
+                  "coral",
+                  "alloy",
+                  "ash",
+                  "ballad",
+                  "echo",
+                  "sage",
+                  "shimmer",
+                  "verse",
+                  "nova",
+                  "onyx"
+                ],
+                "defecto": "coral",
+                "doc": "Voz de gpt-audio-mini (solo proveedor gpt-audio)."
+              },
+              "proveedor": {
+                "t": "enum",
+                "valores": [
+                  "fish",
+                  "gpt-audio",
+                  "elevenlabs"
+                ],
+                "defecto": "fish",
+                "doc": "fish = TTS puro de OpenRouter (lee al pie de la letra; recomendado); gpt-audio = gpt-audio-mini (admite voz y estilo, pero puede \"contestar\" fragmentos); elevenlabs solo si hay ELEVENLABS_API_KEY y el usuario lo pidió (AGENT §5)."
+              },
+              "estilo": {
+                "t": "texto",
+                "opcional": true,
+                "max_car": 120,
+                "doc": "Tono en pocas palabras, solo proveedor gpt-audio (\"cálido, seguro, ritmo ágil\")."
+              }
+            }
+          }
+        }
+      },
+      "hechos": {
+        "t": "registro",
+        "opcional": true,
+        "de": {
+          "t": "texto",
+          "max_car": 220
+        },
+        "doc": "Hechos reales confirmados con su fuente: {\"h1\": \"… (fuente: …)\"}. Las escenas de demo los citan en `respaldo`."
+      },
+      "estilo": {
+        "t": "objeto",
+        "defecto": {},
+        "props": {
+          "kicker": {
+            "t": "booleano",
+            "defecto": false,
+            "doc": "Kicker numerado \"01 · SECCIÓN\": desactivado por regla de la casa (se ve como diapositivas)."
+          }
+        }
+      },
+      "escenas": {
+        "t": "lista",
+        "min": 2,
+        "max": 10,
+        "de": {
+          "t": "union",
+          "nombre": "escena"
+        },
+        "doc": "Escenas en orden. Sin tiempos: el motor los calcula."
+      }
+    }
+  },
+  "escena_comun": {
+    "id": {
+      "t": "texto",
+      "opcional": true,
+      "patron": "^[a-z0-9][a-z0-9_-]*$",
+      "max_car": 24,
+      "doc": "Identificador corto (minúsculas). Por defecto e1, e2…"
+    },
+    "duracion": {
+      "t": "numero",
+      "opcional": true,
+      "min": 1.5,
+      "max": 12,
+      "doc": "Fija la duración de esta escena (s). Úsalo solo si hace falta; el motor la calcula sola."
+    },
+    "tinte": {
+      "t": "enum",
+      "de": "tema.tintes",
+      "opcional": true,
+      "doc": "Color del resplandor de fondo de la escena."
+    },
+    "respaldo": {
+      "t": "lista",
+      "opcional": true,
+      "min": 1,
+      "max": 4,
+      "de": {
+        "t": "ref",
+        "a": "hechos"
+      },
+      "doc": "Ids de `hechos` que respaldan lo que muestra la escena."
+    },
+    "notas": {
+      "t": "texto",
+      "opcional": true,
+      "max_car": 400,
+      "doc": "Notas internas; no se muestran."
+    }
+  }
+}

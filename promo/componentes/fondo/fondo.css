@@ -1,0 +1,13 @@
+.fondo-brillo {
+  position: absolute;
+  inset: 0;
+  background:
+    radial-gradient(78% 30% at calc(4% + var(--dx)) calc(66% + var(--dy)), var(--ta) 0%, transparent 74%),
+    radial-gradient(66% 26% at calc(97% - var(--dx)) calc(47% - var(--dy)), var(--tb) 0%, transparent 72%),
+    radial-gradient(95% 26% at 50% 78%, color-mix(in oklab, var(--ta) 60%, transparent) 0%, transparent 76%);
+}
+.fondo-vineta {
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(180deg, rgba(8, 10, 14, 0.55) 0%, rgba(8, 10, 14, 0) 20%, rgba(8, 10, 14, 0) 80%, rgba(8, 10, 14, 0.6) 100%);
+}

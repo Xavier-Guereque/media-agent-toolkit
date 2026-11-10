@@ -1,0 +1,151 @@
+/* chat — medidas de la referencia (1080×1920): tarjeta 880×900 en x=100, y=505. */
+.ch-pos { position: absolute; left: 100px; top: 505px; width: 880px; height: 900px; }
+.ch { width: 100%; height: 100%; display: flex; flex-direction: column; }
+
+.ch-cuerpo {
+  position: relative;
+  flex: 1;
+  overflow: hidden;
+  /* Los mensajes que suben se desvanecen bajo la cabecera, como en la app real. */
+  -webkit-mask-image: linear-gradient(180deg, transparent 0, #000 46px);
+  mask-image: linear-gradient(180deg, transparent 0, #000 46px);
+}
+.ch-pila { position: absolute; left: 28px; right: 28px; bottom: 18px; display: flex; flex-direction: column; gap: 16px; }
+.ch-en { display: flex; flex-direction: column; align-items: flex-start; transform-origin: 0 100%; }
+.ch-usuario, .ch-imagen, .ch-nota_voz, .ch-archivo { align-items: flex-end; transform-origin: 100% 100%; }
+.ch-archivo.ch-de-asistente { align-items: flex-start; transform-origin: 0 100%; }
+.ch-piel-asistente_web .ch-burbuja.ent { background: #1c1e23; color: #e7e9ee; }
+
+.ch-burbuja { max-width: 710px; border-radius: 22px; padding: 18px 26px; font-size: 27px; line-height: 1.42; color: #f0f1f3; }
+.ch-burbuja.usr { background: #26282e; }
+.ch-burbuja.ent { background: #1f2c34; color: #e9edef; }
+
+.ch-etiqueta { flex-direction: row; align-items: center; gap: 12px; font-size: 23px; font-weight: 500; color: #b4b8c1; padding: 4px 0 0; }
+.ch-chispa { display: flex; color: #8fa8f5; }
+
+.ch-razon { display: flex; gap: 14px; align-items: flex-start; padding: 16px 22px; font-size: 22px; line-height: 1.4; color: #aeb3bd; width: 100%; }
+.ch-razon b { color: #e7e9ee; font-weight: 600; }
+.ch-rayo { color: #7f9cf5; padding-top: 2px; }
+
+.ch-asist { font-size: 26px; line-height: 1.42; color: #c9cdd5; max-width: 780px; }
+.ch-asist .enf { color: #fff; font-weight: 700; }
+
+/* Productos: fila de fichas unidas por enlaces + accesorios. */
+.ch-prods { width: 100%; padding: 26px 22px 20px; }
+.ch-fila-prods { display: flex; align-items: flex-start; justify-content: center; }
+.ch-prod { display: flex; flex-direction: column; align-items: center; width: 200px; flex: none; }
+.ch-prod-img {
+  position: relative; width: 128px; height: 128px; border-radius: 20px;
+  background: #1c1e23; border: 1.5px solid rgba(255, 255, 255, 0.1);
+  display: flex; align-items: center; justify-content: center; color: #cfd5e3;
+}
+.ch-prod-img img { width: 108px; height: 108px; object-fit: contain; }
+.ch-prod-img .ui-punto { position: absolute; left: 12px; top: 12px; }
+.ch-prod-img .ui-insignia { position: absolute; right: -16px; top: -16px; }
+.ch-ico-prod { display: flex; color: #c6cde0; }
+.ch-prod-nom { margin-top: 18px; font-size: 24px; font-weight: 600; color: #f2f3f5; white-space: nowrap; overflow: hidden; max-width: 210px; text-align: center; }
+.ch-prod-mod { margin-top: 6px; white-space: nowrap; overflow: hidden; max-width: 200px; text-align: center; }
+.ch-con { position: relative; flex: 1; min-width: 40px; height: 128px; display: flex; align-items: center; justify-content: center; margin: 0 -24px; }
+.ch-con-linea {
+  position: absolute; left: 0; right: 0; top: 50%; height: 8px; margin-top: -4px;
+  background-image: radial-gradient(circle, #7d97f2 3px, transparent 3.6px);
+  background-size: 24px 8px; background-repeat: repeat-x;
+}
+.ch-con.etq .ch-con-linea { background-image: linear-gradient(#3b3e46, #3b3e46); background-size: 100% 2px; background-position: 0 50%; background-repeat: no-repeat; }
+.ch-con-etq { position: relative; padding: 6px 14px; border-radius: 999px; background: #202227; border: 1.5px solid rgba(255, 255, 255, 0.12); font-size: 20px; color: #d8dbe1; white-space: nowrap; }
+.ch-accs { display: flex; gap: 16px; margin-top: 22px; }
+.ch-acc { flex: 1; display: flex; align-items: center; gap: 12px; height: 60px; padding: 0 16px; border-radius: 16px; border: 1.5px solid rgba(255, 255, 255, 0.1); background: #17191d; font-size: 21px; color: #e3e5ea; }
+.ch-acc .ui-insignia { height: 30px; font-size: 18px; }
+.ch-acc-ico { display: flex; color: #aab2c6; }
+.ch-acc-nom { white-space: nowrap; overflow: hidden; }
+.ch-acc .ui-punto { margin-left: auto; }
+
+/* Foto enviada por el usuario, con escaneo. */
+.ch-foto { padding: 14px; }
+.ch-foto-marco { position: relative; width: 380px; height: 290px; border-radius: 16px; background: linear-gradient(160deg, #f1f3f6, #d6dae1); display: flex; align-items: center; justify-content: center; overflow: hidden; color: #2b2f37; }
+.ch-foto-marco img { width: 100%; height: 100%; object-fit: contain; }
+.ch-foto-pie { margin: 12px 8px 2px; font-size: 22px; color: #d9dce2; }
+.ch-esq { position: absolute; width: 34px; height: 34px; border: 3px solid #1b1d22; }
+.ch-esq.a { left: 16px; top: 16px; border-right: 0; border-bottom: 0; border-radius: 8px 0 0 0; }
+.ch-esq.b { right: 16px; top: 16px; border-left: 0; border-bottom: 0; border-radius: 0 8px 0 0; }
+.ch-esq.c { left: 16px; bottom: 16px; border-right: 0; border-top: 0; border-radius: 0 0 0 8px; }
+.ch-esq.d { right: 16px; bottom: 16px; border-left: 0; border-top: 0; border-radius: 0 0 8px 0; }
+.ch-escaner { position: absolute; left: 8px; right: 8px; height: 3px; border-radius: 2px; background: #4b67d6; box-shadow: 0 0 18px 4px rgba(75, 103, 214, 0.7); }
+.ch-foto-tag-pos { position: absolute; left: 0; right: 0; top: 14px; display: flex; justify-content: center; }
+.ch-foto-tag { padding: 6px 14px; border-radius: 8px; background: #3a57c9; color: #fff; font-size: 19px; font-weight: 600; white-space: nowrap; }
+
+/* Nota de voz. */
+.ch-voz { display: flex; align-items: center; gap: 14px; padding: 16px 20px; position: relative; min-width: 520px; }
+.ch-voz.wa { background: #155f4d; padding: 20px 22px 28px; min-width: 560px; }
+.ch-voz.wa .ch-avatar { width: 62px; height: 62px; font-size: 32px; }
+.ch-voz.wa .ch-onda { height: 58px; gap: 5px; }
+.ch-voz.wa .ch-onda i { width: 6px; }
+.ch-voz.wa .ch-voz-meta { font-size: 18px; left: 104px; bottom: 6px; }
+.ch-avatar { display: inline-flex; align-items: center; justify-content: center; width: 54px; height: 54px; border-radius: 50%; background: #0d0f13; border: 2px solid rgba(255, 255, 255, 0.85); color: #fff; font-family: var(--f-titulo); font-weight: 800; font-style: italic; font-size: 28px; flex: none; }
+.ch-avatar.pq { width: 52px; height: 52px; }
+.ch-play { color: #e9fff6; flex: none; }
+.ch-onda { position: relative; display: flex; align-items: center; gap: 4px; height: 50px; }
+.ch-onda i { display: block; width: 5px; border-radius: 3px; background: rgba(233, 255, 246, 0.45); }
+.ch-onda::after { content: ''; position: absolute; top: 4px; bottom: 4px; width: 3px; border-radius: 2px; background: #fff; left: calc(var(--k, 0) * 100%); }
+.ch-voz-meta { position: absolute; left: 90px; right: 20px; bottom: 4px; display: flex; justify-content: space-between; font-size: 16px; color: rgba(233, 255, 246, 0.7); }
+.ch-voz-h { display: inline-flex; align-items: center; gap: 4px; font-size: 16px; color: rgba(233, 255, 246, 0.7); }
+.ch-voz-h .ico { color: #53bdeb; }
+.ch-transc { margin-top: 8px; max-width: 560px; font-size: 18px; font-style: italic; color: #9aa0ad; text-align: right; }
+
+/* Archivo adjunto. */
+.ch-arch { display: flex; align-items: center; gap: 16px; padding: 14px 18px; min-width: 460px; }
+.ch-arch.wa { background: #155f4d; padding: 16px 20px; }
+.ch-arch.wa .ch-arch-ico { width: 64px; height: 64px; }
+.ch-arch.wa .ch-arch-txt b { font-size: 25px; }
+.ch-arch.wa .ch-arch-txt small { font-size: 19px; }
+.ch-arch-ico { display: flex; align-items: center; justify-content: center; width: 58px; height: 58px; border-radius: 12px; color: #fff; flex: none; }
+.ch-arch-txt { display: flex; flex-direction: column; gap: 4px; min-width: 0; }
+.ch-arch-txt b { font-size: 23px; font-weight: 600; white-space: nowrap; overflow: hidden; max-width: 300px; }
+.ch-arch-txt small { font-size: 18px; color: rgba(233, 237, 239, 0.65); }
+.ch-arch .ch-voz-h { margin-left: auto; align-self: flex-end; }
+
+/* Ficha de producto identificado. */
+.ch-ficha { position: relative; display: flex; gap: 22px; padding: 22px; width: 100%; }
+.ch-ficha-img { width: 150px; height: 150px; border-radius: 18px; background: linear-gradient(160deg, #f1f3f6, #d6dae1); display: flex; align-items: center; justify-content: center; color: #2b2f37; flex: none; }
+.ch-ficha-img img { width: 130px; height: 130px; object-fit: contain; }
+.ch-ficha-txt { display: flex; flex-direction: column; gap: 6px; min-width: 0; flex: 1; }
+.ch-ficha-marca { font-family: var(--f-mono); font-size: 17px; letter-spacing: 0.12em; color: #9aa0ad; }
+.ch-ficha-txt b { font-size: 25px; font-weight: 700; color: #fff; }
+.ch-exs { display: flex; flex-direction: column; gap: 4px; margin-top: 6px; }
+.ch-ex { display: flex; align-items: center; gap: 10px; font-size: 20px; color: #c9cdd5; }
+.ch-ex .ui-punto { width: 10px; height: 10px; }
+.ch-ex b { margin-left: auto; font-size: 20px; font-weight: 600; color: #e7e9ee; }
+.ch-ficha-bot { display: flex; gap: 12px; margin-top: 10px; }
+.ch-ficha-bot .ui-boton { height: 50px; font-size: 22px; padding: 0 22px; }
+.ch-toast { display: inline-flex; align-items: center; gap: 10px; padding: 10px 18px; border-radius: 999px; background: #15301f; border: 1.5px solid #2c6a44; color: #5bd98f; font-size: 22px; font-weight: 600; white-space: nowrap; }
+.ch-toast-ficha { position: absolute; left: 190px; bottom: -22px; }
+.ch-en.ch-toast { align-items: center; align-self: stretch; }
+
+/* Cotización (documento). */
+.ch-cot { display: flex; align-items: center; gap: 20px; padding: 20px 22px; width: 100%; }
+.ch-cot-ico { display: flex; align-items: center; justify-content: center; width: 70px; height: 70px; border-radius: 16px; background: #3a1d1f; color: #e0655c; flex: none; }
+.ch-cot-txt { display: flex; flex-direction: column; gap: 6px; min-width: 0; }
+.ch-cot-txt b { font-size: 25px; font-weight: 600; white-space: nowrap; overflow: hidden; max-width: 470px; }
+.ch-cot-txt small { font-size: 20px; color: #9aa0ad; }
+.ch-cot-bot { margin-left: auto; background: #3550b8; }
+
+/* Barra de entrada. */
+.ch-entrada { padding: 0 26px 16px; }
+.ch-campo { display: flex; align-items: center; gap: 18px; height: 84px; padding: 0 12px 0 24px; border-radius: 24px; border: 1.5px solid rgba(255, 255, 255, 0.12); background: #17181c; color: #a3a8b2; }
+.ch-ph { flex: 1; font-size: 25px; color: #8b909a; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.ch-enviar { display: flex; align-items: center; justify-content: center; width: 60px; height: 60px; border-radius: 14px; background: #3f5fd6; color: #fff; flex: none; }
+.ch-entrada .ui-aviso-ia { margin-top: 14px; }
+.ch-entrada-wa { display: flex; gap: 14px; align-items: center; padding: 18px 22px 22px; }
+.ch-entrada-wa .ch-campo { flex: 1; height: 76px; border-radius: 38px; font-size: 25px; color: #8b909a; padding-left: 30px; }
+.ch-mic-wa { display: flex; align-items: center; justify-content: center; width: 76px; height: 76px; border-radius: 50%; background: #21c063; color: #0b141a; flex: none; }
+
+/* Piel WhatsApp. */
+.ch-piel-whatsapp { background: #0b141a; }
+.ch-piel-whatsapp .ui-cabecera { background: #1f2c34; border-bottom: 0; height: 96px; gap: 14px; padding: 0 22px; }
+.ch-wa-nombre { display: flex; flex-direction: column; gap: 2px; }
+.ch-wa-nombre b { font-size: 27px; font-weight: 600; color: #e9edef; }
+.ch-wa-nombre small { font-size: 19px; color: #8696a0; }
+.ch-piel-whatsapp .ch-burbuja.usr { background: #155f4d; color: #e9edef; }
+.ch-piel-whatsapp .ch-asist { color: #e9edef; font-size: 26px; }
+.ch-piel-whatsapp .ch-transc { font-size: 19px; }
+.ch-piel-whatsapp .ch-asist .enf { color: #fff; }

@@ -1,0 +1,55 @@
+{
+  "doc": "Final: logo + lema + botón de llamada a la acción + contacto + aviso \"Interfaz y datos ilustrativos.\" (lo pone el tema).",
+  "tinte_defecto": "marino",
+  "duracion": {
+    "min": 3.5,
+    "max": 8
+  },
+  "titular": false,
+  "props": {
+    "lema": {
+      "t": "texto",
+      "max_palabras": 6,
+      "max_car": 36,
+      "enfasis": true,
+      "doc": "Lema corto con *énfasis* (\"AI para *PROs.*\")."
+    },
+    "cta": {
+      "t": "objeto",
+      "props": {
+        "texto": {
+          "t": "texto",
+          "max_palabras": 5,
+          "max_car": 30,
+          "doc": "Texto del botón (\"Escríbele por WhatsApp\")."
+        },
+        "icono": {
+          "t": "enum",
+          "valores": [
+            "whatsapp",
+            "telefono",
+            "web",
+            "descarga",
+            "correo",
+            "ninguno"
+          ],
+          "defecto": "whatsapp",
+          "doc": "Ícono del botón."
+        }
+      }
+    },
+    "contacto": {
+      "t": "texto",
+      "opcional": true,
+      "max_car": 52,
+      "doc": "Línea de contacto (\"+52 55 0000 0000 · acme.example · App ACME PRO\")."
+    },
+    "aviso": {
+      "t": "booleano",
+      "defecto": true,
+      "doc": "Mostrar \"Interfaz y datos ilustrativos.\" (obligatorio si hay UI o datos simulados)."
+    }
+  },
+  "comprimible": false,
+  "_nota_comprimible": "El cierre nunca se acelera: el CTA necesita quedarse en pantalla (la referencia lo sostiene ~4 s)."
+}

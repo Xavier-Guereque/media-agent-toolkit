@@ -1,0 +1,814 @@
+{
+  "version": 1,
+  "curso": {
+    "titulo": "Fundamentos de direccionamiento IP para instaladores",
+    "publico": "Técnicos instaladores de videovigilancia y redes sin formación formal en redes",
+    "perfil_ingreso": "Sabe conectar equipos a un switch y usar un navegador; no requiere conocimientos previos de redes",
+    "objetivo_general": "Configurar direcciones IP válidas en equipos de videovigilancia de una red local, sin conflictos entre equipos",
+    "duracion_h": 0.3,
+    "modalidad": "A distancia, autoaprendizaje en video con preguntas intercaladas",
+    "area_tematica": "Tecnologías de la información (verificar la clave en el catálogo de áreas de la STPS)",
+    "instructor": "Equipo de capacitación",
+    "tutor": "Nombre del tutor en línea",
+    "idioma": "es-MX",
+    "voz": {},
+    "modo": {"proposito": "aprendizaje", "evaluacion": "intercalada"},
+    "estilo": {
+      "orientacion": "horizontal",
+      "tema": "cine",
+      "subtitulos_quemados": false,
+      "musica": false
+    },
+    "evaluacion": {
+      "diagnostica": "Autoevaluación de tres reactivos antes de la primera lección",
+      "formativa": "Preguntas intercaladas en cada lección con retroalimentación inmediata",
+      "sumativa": "Cuestionario final con los reactivos de quiz.json",
+      "acreditacion": {
+        "minimo_pct": 80,
+        "reintentos": 2,
+        "lecciones_completas": true
+      }
+    },
+    "bibliografia": [
+      "RFC 1918 — Address Allocation for Private Internets",
+      "Tanenbaum, A. Redes de computadoras."
+    ]
+  },
+  "modulos": [
+    {
+      "id": "m1",
+      "titulo": "La dirección IP en la red local",
+      "objetivo": "Explicar cómo una dirección IP y su máscara identifican a un equipo dentro de una red local",
+      "lecciones": [
+        {
+          "id": "m1-l1",
+          "titulo": "Qué es una dirección IP",
+          "objetivo": "Identificar la parte de red y la parte de equipo en una dirección IP versión cuatro",
+          "criterio_exito": "Lo sabrás cuando separes las dos partes en la dirección de una cámara.",
+          "nivel_bloom": "recordar",
+          "tipo": "concepto",
+          "escenas": [
+            {
+              "id": "e1",
+              "tipo": "gancho",
+              "min": 4,
+              "tts": "Instalaste dos cámaras y ninguna aparece en el grabador. Casi siempre el problema está en su dirección.",
+              "pantalla": {
+                "texto": "Dos cámaras instaladas. Ninguna aparece en el grabador.",
+                "acciones": [
+                  {
+                    "en": "dos",
+                    "accion": "aparece",
+                    "actor": "cam1"
+                  },
+                  {
+                    "en": "cámaras",
+                    "accion": "aparece",
+                    "actor": "cam2"
+                  },
+                  {
+                    "en": "ninguna",
+                    "accion": "conecta",
+                    "actor": "c1"
+                  },
+                  {
+                    "junto": true,
+                    "accion": "conecta",
+                    "actor": "c2",
+                    "retraso": 0.15
+                  },
+                  {
+                    "en": "aparece",
+                    "accion": "envia",
+                    "actor": "c1",
+                    "falla": true,
+                    "veces": 2,
+                    "cada": 1.65
+                  },
+                  {
+                    "junto": true,
+                    "accion": "envia",
+                    "actor": "c2",
+                    "falla": true,
+                    "veces": 2,
+                    "cada": 1.65,
+                    "retraso": 0.35
+                  },
+                  {
+                    "en": "grabador",
+                    "accion": "aparece",
+                    "actor": "nvr"
+                  },
+                  {
+                    "junto": true,
+                    "accion": "enfoca",
+                    "x": 300,
+                    "y": 0,
+                    "z": 1.28
+                  },
+                  {
+                    "en": "problema",
+                    "accion": "aparece",
+                    "actor": "ip1"
+                  },
+                  {
+                    "junto": true,
+                    "accion": "enfoca",
+                    "x": -560,
+                    "y": -60,
+                    "z": 1.7,
+                    "d": 0.75
+                  },
+                  {
+                    "en": "dirección",
+                    "accion": "enfoca",
+                    "actor": "ip1",
+                    "z": 4.4,
+                    "d": 1.15,
+                    "aisla": true
+                  }
+                ]
+              }
+            },
+            {
+              "id": "e2",
+              "tipo": "objetivo",
+              "min": 5,
+              "tts": "Al terminar vas a identificar la parte de red y la parte de equipo en cualquier dirección.",
+              "pantalla": {
+                "marcas": [
+                  {
+                    "en": "red",
+                    "texto": "red",
+                    "color": "acento"
+                  },
+                  {
+                    "en": "equipo",
+                    "texto": "equipo",
+                    "color": "alerta"
+                  }
+                ]
+              }
+            },
+            {
+              "id": "e3",
+              "tipo": "concepto",
+              "min": 8,
+              "tts": "Una dirección tiene cuatro números. Los primeros tres dicen en qué red vive tu cámara. El último dice qué equipo es dentro de esa red.",
+              "pantalla": {
+                "titular": "Una dirección IP",
+                "acciones": [
+                  {
+                    "en": "cuatro",
+                    "accion": "divide",
+                    "actor": "ip1",
+                    "numera": true
+                  },
+                  {
+                    "en": "primeros",
+                    "accion": "resalta",
+                    "actor": "ip1",
+                    "partes": [
+                      0,
+                      1,
+                      2
+                    ],
+                    "color": "acento"
+                  },
+                  {
+                    "en": "dicen",
+                    "accion": "llave",
+                    "actor": "ip1",
+                    "partes": [
+                      0,
+                      1,
+                      2
+                    ],
+                    "color": "acento",
+                    "texto": "red"
+                  },
+                  {
+                    "en": "red",
+                    "accion": "une",
+                    "actor": "ip1"
+                  },
+                  {
+                    "junto": true,
+                    "accion": "enfoca",
+                    "d": 1.5
+                  },
+                  {
+                    "junto": true,
+                    "accion": "aparece",
+                    "actor": "zona",
+                    "d": 1.15,
+                    "retraso": 0.2
+                  },
+                  {
+                    "en": "vive",
+                    "accion": "copia",
+                    "actor": "ip2",
+                    "desde": "ip1",
+                    "partes": [
+                      0,
+                      1,
+                      2
+                    ],
+                    "color": "acento",
+                    "retraso": 0.2
+                  },
+                  {
+                    "junto": true,
+                    "accion": "copia",
+                    "actor": "ipg",
+                    "desde": "ip1",
+                    "partes": [
+                      0,
+                      1,
+                      2
+                    ],
+                    "color": "acento",
+                    "retraso": 0.16
+                  },
+                  {
+                    "en": "último",
+                    "accion": "resalta",
+                    "actor": "ip1",
+                    "partes": [
+                      3
+                    ],
+                    "color": "alerta"
+                  },
+                  {
+                    "junto": true,
+                    "accion": "enfoca",
+                    "x": -30,
+                    "y": 0,
+                    "z": 1.06,
+                    "d": 0.9
+                  },
+                  {
+                    "en": "equipo",
+                    "accion": "aparece",
+                    "actor": "ip2",
+                    "partes": [
+                      3
+                    ]
+                  },
+                  {
+                    "junto": true,
+                    "accion": "resalta",
+                    "actor": "ip2",
+                    "partes": [
+                      3
+                    ],
+                    "color": "alerta"
+                  },
+                  {
+                    "junto": true,
+                    "accion": "aparece",
+                    "actor": "ipg",
+                    "partes": [
+                      3
+                    ],
+                    "retraso": 0.3
+                  },
+                  {
+                    "junto": true,
+                    "accion": "resalta",
+                    "actor": "ipg",
+                    "partes": [
+                      3
+                    ],
+                    "color": "alerta"
+                  },
+                  {
+                    "en": "dentro",
+                    "accion": "enfoca",
+                    "d": 1.2
+                  },
+                  {
+                    "en": "red",
+                    "accion": "transforma",
+                    "actor": "nvr",
+                    "a": "vivo"
+                  },
+                  {
+                    "junto": true,
+                    "accion": "transforma",
+                    "actor": "cam1",
+                    "a": "vivo"
+                  },
+                  {
+                    "junto": true,
+                    "accion": "transforma",
+                    "actor": "cam2",
+                    "a": "vivo"
+                  },
+                  {
+                    "junto": true,
+                    "accion": "transforma",
+                    "actor": "c1",
+                    "a": "vivo"
+                  },
+                  {
+                    "junto": true,
+                    "accion": "transforma",
+                    "actor": "c2",
+                    "a": "vivo"
+                  },
+                  {
+                    "junto": true,
+                    "accion": "envia",
+                    "actor": "c1",
+                    "veces": 3,
+                    "cada": 0.35,
+                    "d": 0.8,
+                    "retraso": 0.1
+                  },
+                  {
+                    "junto": true,
+                    "accion": "envia",
+                    "actor": "c2",
+                    "veces": 3,
+                    "cada": 0.35,
+                    "d": 0.8,
+                    "retraso": 0.25
+                  }
+                ]
+              }
+            },
+            {
+              "id": "e3b",
+              "tipo": "ejemplo",
+              "min": 8,
+              "tts": "Mira esta cámara. Su red es la misma de tu grabador y su último número la distingue del resto.",
+              "pantalla": {
+                "titular": "Ejemplo",
+                "enunciado": "Cámara 192.168.1.20",
+                "solucion": [
+                  {
+                    "texto": "Red: 192.168.1",
+                    "en": "red"
+                  },
+                  {
+                    "texto": "Equipo: 20",
+                    "en": "último"
+                  }
+                ],
+                "acciones": [
+                  {
+                    "en": "Mira",
+                    "accion": "enfoca",
+                    "actor": "ip1",
+                    "dy": -40,
+                    "z": 1.9
+                  },
+                  {
+                    "en": "red",
+                    "accion": "resalta",
+                    "actor": "ip1",
+                    "partes": [
+                      0,
+                      1,
+                      2
+                    ],
+                    "color": "acento"
+                  },
+                  {
+                    "en": "grabador",
+                    "accion": "enfoca",
+                    "actor": "ipg",
+                    "dy": -40,
+                    "z": 1.9
+                  },
+                  {
+                    "junto": true,
+                    "accion": "resalta",
+                    "actor": "ipg",
+                    "partes": [
+                      0,
+                      1,
+                      2
+                    ],
+                    "color": "acento",
+                    "retraso": 0.4
+                  },
+                  {
+                    "en": "último",
+                    "accion": "enfoca",
+                    "actor": "ip1",
+                    "dy": -40,
+                    "z": 1.9
+                  },
+                  {
+                    "junto": true,
+                    "accion": "resalta",
+                    "actor": "ip1",
+                    "partes": [
+                      3
+                    ],
+                    "color": "alerta",
+                    "retraso": 0.4
+                  },
+                  {
+                    "en": "resto",
+                    "accion": "enfoca",
+                    "d": 1
+                  }
+                ]
+              }
+            },
+            {
+              "id": "e4",
+              "tipo": "pregunta",
+              "pregunta_ref": "p1",
+              "min": 6,
+              "tts": "Comprueba lo que viste. Elige la parte que identifica a la cámara dentro de la red.",
+              "tts_retro": "La correcta es el último número, porque la parte de red es la misma para todos tus equipos.",
+              "retro_acciones": [
+                {
+                  "en": "porque",
+                  "accion": "enfoca",
+                  "actor": "ip1",
+                  "z": 3.2,
+                  "d": 0.9
+                },
+                {
+                  "junto": true,
+                  "accion": "resalta",
+                  "actor": "ip1",
+                  "partes": [
+                    3
+                  ],
+                  "color": "alerta",
+                  "retraso": 0.5
+                },
+                {
+                  "en": "misma",
+                  "accion": "enfoca",
+                  "d": 1.1
+                },
+                {
+                  "junto": true,
+                  "accion": "resalta",
+                  "actor": "ip1",
+                  "partes": [
+                    0,
+                    1,
+                    2
+                  ],
+                  "color": "acento",
+                  "retraso": 0.6
+                },
+                {
+                  "junto": true,
+                  "accion": "resalta",
+                  "actor": "ip2",
+                  "partes": [
+                    0,
+                    1,
+                    2
+                  ],
+                  "color": "acento",
+                  "retraso": 0.2
+                },
+                {
+                  "junto": true,
+                  "accion": "resalta",
+                  "actor": "ipg",
+                  "partes": [
+                    0,
+                    1,
+                    2
+                  ],
+                  "color": "acento",
+                  "retraso": 0.2
+                }
+              ]
+            },
+            {
+              "id": "e5",
+              "tipo": "resumen",
+              "min": 6,
+              "tts": "Ya lo tienes. Tu dirección tiene cuatro números, los primeros tres son la red y el último es el equipo.",
+              "pantalla": {
+                "puntos": [
+                  {
+                    "texto": "Cuatro números separados por puntos",
+                    "en": "cuatro"
+                  },
+                  {
+                    "texto": "Tres para la red, uno para el equipo",
+                    "en": "primeros"
+                  }
+                ],
+                "acciones": [
+                  {
+                    "en": "dirección",
+                    "accion": "enfoca",
+                    "actor": "ip1",
+                    "z": 3.2
+                  },
+                  {
+                    "en": "cuatro",
+                    "accion": "divide",
+                    "actor": "ip1"
+                  },
+                  {
+                    "en": "primeros",
+                    "accion": "resalta",
+                    "actor": "ip1",
+                    "partes": [
+                      0,
+                      1,
+                      2
+                    ],
+                    "color": "acento"
+                  },
+                  {
+                    "en": "red",
+                    "accion": "une",
+                    "actor": "ip1"
+                  },
+                  {
+                    "junto": true,
+                    "accion": "enfoca",
+                    "d": 1.3
+                  },
+                  {
+                    "en": "último",
+                    "accion": "resalta",
+                    "actor": "ip1",
+                    "partes": [
+                      3
+                    ],
+                    "color": "alerta"
+                  },
+                  {
+                    "junto": true,
+                    "accion": "resalta",
+                    "actor": "ip2",
+                    "partes": [
+                      3
+                    ],
+                    "color": "alerta"
+                  },
+                  {
+                    "junto": true,
+                    "accion": "resalta",
+                    "actor": "ipg",
+                    "partes": [
+                      3
+                    ],
+                    "color": "alerta"
+                  }
+                ]
+              }
+            },
+            {
+              "id": "e6",
+              "tipo": "cierre",
+              "min": 4,
+              "tts": "En la siguiente lección vas a ver cómo la máscara marca esa frontera."
+            }
+          ],
+          "preguntas": [
+            {
+              "id": "p1",
+              "objetivo_ref": "m1-l1",
+              "enunciado": "En 192.168.1.20, ¿qué parte identifica a la cámara?",
+              "opciones": [
+                "192",
+                "168.1",
+                "20"
+              ],
+              "correcta": 2,
+              "retro": "El último número distingue al equipo; los tres primeros son iguales en toda la red.",
+              "retro_opciones": [
+                "Es parte de la red, no del equipo.",
+                "También es parte de la red.",
+                "Correcto: es el equipo."
+              ]
+            }
+          ],
+          "practica": {
+            "consigna": "Anota la dirección de tres equipos reales y separa red y equipo.",
+            "rubrica": "Las tres separaciones son correctas.",
+            "min": 5
+          },
+          "recursos": [
+            "img/diagrama-ip.png"
+          ],
+          "mundo": {
+            "actores": [
+              {
+                "id": "zona",
+                "tipo": "zona",
+                "w": 1660,
+                "h": 940,
+                "texto": "Red 192.168.1"
+              },
+              {
+                "id": "cam1",
+                "tipo": "camara",
+                "x": -560,
+                "y": -250
+              },
+              {
+                "id": "cam2",
+                "tipo": "camara",
+                "x": -560,
+                "y": 235
+              },
+              {
+                "id": "nvr",
+                "tipo": "grabador",
+                "x": 470,
+                "y": -20
+              },
+              {
+                "id": "c1",
+                "tipo": "enlace",
+                "de": "cam1",
+                "a": "nvr"
+              },
+              {
+                "id": "c2",
+                "tipo": "enlace",
+                "de": "cam2",
+                "a": "nvr"
+              },
+              {
+                "id": "ip1",
+                "tipo": "dato",
+                "x": -560,
+                "y": -92,
+                "partes": [
+                  "192",
+                  "168",
+                  "1",
+                  "20"
+                ]
+              },
+              {
+                "id": "ip2",
+                "tipo": "dato",
+                "x": -560,
+                "y": 393,
+                "partes": [
+                  "192",
+                  "168",
+                  "1",
+                  "21"
+                ]
+              },
+              {
+                "id": "ipg",
+                "tipo": "dato",
+                "x": 470,
+                "y": 220,
+                "partes": [
+                  "192",
+                  "168",
+                  "1",
+                  "10"
+                ]
+              }
+            ]
+          }
+        },
+        {
+          "id": "m1-l2",
+          "titulo": "La máscara de subred",
+          "objetivo": "Explicar cómo la máscara de subred separa la parte de red de la parte de equipo",
+          "criterio_exito": "Lo sabrás cuando digas si dos equipos están en la misma red.",
+          "nivel_bloom": "comprender",
+          "tipo": "concepto",
+          "escenas": [
+            {
+              "id": "e1",
+              "tipo": "gancho",
+              "min": 4,
+              "tts": "Dos equipos pueden parecer vecinos y aun así no verse. La máscara decide quién es tu vecino.",
+              "pantalla": {
+                "texto": "Parecen vecinos y no se ven."
+              }
+            },
+            {
+              "id": "e2",
+              "tipo": "objetivo",
+              "min": 5,
+              "tts": "Al terminar vas a explicar cómo la máscara separa la red del equipo."
+            },
+            {
+              "id": "e3",
+              "tipo": "pasos",
+              "min": 10,
+              "tts": "Para saber si dos equipos se ven, sigue tres pasos. Primero anota sus direcciones. Después tapa la parte de equipo. Al final compara lo que queda.",
+              "pantalla": {
+                "titular": "¿Están en la misma red?",
+                "pasos": [
+                  {
+                    "texto": "Anota las dos direcciones",
+                    "en": "Primero"
+                  },
+                  {
+                    "texto": "Tapa la parte de equipo",
+                    "en": "Después"
+                  },
+                  {
+                    "texto": "Compara lo que queda",
+                    "en": "final"
+                  }
+                ]
+              }
+            },
+            {
+              "id": "e4",
+              "tipo": "ejemplo",
+              "min": 9,
+              "tts": "Mira este caso. La cámara y el grabador comparten los tres primeros números, así que se ven entre sí.",
+              "pantalla": {
+                "titular": "Ejemplo",
+                "enunciado": "Máscara 255.255.255.0",
+                "solucion": [
+                  {
+                    "texto": "Cámara 192.168.1.20",
+                    "en": "cámara"
+                  },
+                  {
+                    "texto": "Grabador 192.168.1.10",
+                    "en": "grabador"
+                  },
+                  {
+                    "texto": "Misma red: se comunican",
+                    "en": "ven"
+                  }
+                ]
+              }
+            },
+            {
+              "id": "e5",
+              "tipo": "caso",
+              "min": 6,
+              "tts": "Este diagrama resume la idea. La máscara marca dónde termina la red y dónde empieza el equipo.",
+              "pantalla": {
+                "titular": "La frontera",
+                "tarjetas": [
+                  {
+                    "texto": "La máscara marca la frontera",
+                    "en": "marca"
+                  }
+                ]
+              },
+              "imgs": [
+                {
+                  "clave": "diagrama-ip",
+                  "pie": "Red y equipo en una dirección"
+                }
+              ]
+            },
+            {
+              "id": "e6",
+              "tipo": "pregunta",
+              "pregunta_ref": "p1",
+              "min": 6,
+              "tts": "Comprueba lo que aprendiste. Elige el equipo que queda fuera de la red.",
+              "tts_retro": "La correcta es la tercera, porque su tercer número es distinto y eso la pone en otra red."
+            },
+            {
+              "id": "e7",
+              "tipo": "cierre",
+              "min": 4,
+              "tts": "Con esto terminas el módulo. Practica en tu próxima instalación."
+            }
+          ],
+          "preguntas": [
+            {
+              "id": "p1",
+              "objetivo_ref": "m1-l2",
+              "enunciado": "Con máscara 255.255.255.0, ¿qué equipo queda fuera de 192.168.1.x?",
+              "opciones": [
+                "192.168.1.30",
+                "192.168.1.200",
+                "192.168.2.20",
+                "192.168.1.1"
+              ],
+              "correcta": 2,
+              "retro": "Los tres primeros números forman la red; 192.168.2 es otra red."
+            }
+          ],
+          "practica": {
+            "consigna": "Revisa si tu cámara y tu grabador están en la misma red.",
+            "rubrica": "Justifica la respuesta con la máscara.",
+            "min": 5
+          },
+          "recursos": [
+            "img/diagrama-ip.png"
+          ]
+        }
+      ]
+    }
+  ]
+}

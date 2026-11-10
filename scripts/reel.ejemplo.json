@@ -1,0 +1,75 @@
+{
+  "_comentario": "Plantilla del spec que consume scripts/reel.py. Copiar a proyectos/<slug>_<DDMMAAAA>/reel.json y ajustar. Los tipos de escena son: foto | mosaico | tarjeta_logos | cortes | cierre. Los recursos son rutas relativas a la carpeta recursos/ del proyecto.",
+  "_nota_efectos": "El kicker numerado (`01 · SECCIÓN`) y la barra de progreso son OPT-IN y aqui vienen OMITIDOS a proposito: se leen como presentacion de diapositivas. Agregar `salida.barra` y/o `kicker` por escena solo si se piden explicitamente.",
+  "_nota_movimiento": "Para que el Ken Burns se note sin recortar texto: zoom_max 1.10 recorta ~49 px por lado y ~87 arriba/abajo en 1080x1920. Dejar el contenido dentro de x 49..1031 e y 87..1833 y usar fuerza = (zoom_max - 1) / (duracion * fps).",
+  "salida": {
+    "titulo": "Mi proyecto — Reel invitación",
+    "archivo": "mi-proyecto.mp4",
+    "w": 1080, "h": 1920, "fps": 30,
+    "xfade": 0.38,
+    "crf": 20, "preset": "medium",
+    "transiciones": ["smoothleft", "hblur", "smoothup", "smoothright"],
+    "caption_y": 1560,
+    "caption_delay": 0.5,
+    "fuente_sticker": 64
+  },
+  "escenas": [
+    {
+      "clave": "e1", "tipo": "foto", "fuente": "galeria/foto-01.jpg", "duracion": 5.4,
+      "movimiento": "zoom_in", "fuerza": 0.000617, "zoom_max": 1.10,
+      "caption": "Titular con {hl}palabra clave{/hl}\\Nen dos líneas."
+    },
+    {
+      "clave": "e2", "tipo": "mosaico", "duracion": 4.6, "cols": 2,
+      "fuentes": ["galeria/a.jpg", "galeria/b.jpg", "galeria/c.jpg", "galeria/d.jpg"],
+      "movimiento": "zoom_out", "fuerza": 0.000725, "zoom_max": 1.10,
+      "caption": "Cuatro escenas en una.",
+      "sticker": {"texto": "14 SECTORES", "zona": "bottom"}
+    },
+    {
+      "clave": "e3", "tipo": "tarjeta_logos", "fuente": "galeria/fondo.jpg", "duracion": 5.8,
+      "movimiento": "zoom_in", "fuerza": 0.000575, "zoom_max": 1.10,
+      "logos": ["logos2/hikvision.png", "logos2/huawei.png", "logos2/ubiquiti.png",
+                "logos2/mikrotik.png", "logos2/tplink.png", "logos2/cyberpower.png",
+                "logos2/ezviz.png", "logos2/zkteco.png", "logos2/sunmi.png"],
+      "cols": 3, "celda": [280, 150], "logo_max": [190, 85],
+      "caption": "Más de {hl}250 fabricantes{/hl}.",
+      "sticker": {"texto": "250+ FABRICANTES", "zona": "top"}
+    },
+    {
+      "clave": "e4", "tipo": "cortes", "duracion": 5.6, "xfade_sub": 0.3,
+      "fuentes": ["galeria/x.jpg", "galeria/y.jpg", "galeria/z.jpg"],
+      "fuerza": 0.0016, "zoom_max": 1.20,
+      "caption": "Tres cortes rápidos."
+    },
+    {
+      "clave": "e5", "tipo": "cierre", "fuente": "galeria/equipo.jpg", "duracion": 7.4,
+      "logo": "logo_expo.png", "logo_ancho": 820, "logo_y": 520,
+      "logo_fade": 0.8, "logo_delay": 0.6, "fuerza": 0.0005, "zoom_max": 1.12,
+      "url": "acme.example/expo2027",
+      "lineas": ["Entrada gratuita con registro previo", "250+ fabricantes · 14 sectores · 2 días"],
+      "caption": "Te esperamos.\\N{hl}ACME Expo 2027{/hl}."
+    }
+  ],
+  "voz": {
+    "lineas": [
+      "Una línea de voz por escena, en orden.",
+      "Cada línea de 10 palabras o menos."
+    ],
+    "voz": "coral",
+    "offset": 0.6,
+    "colchon_inicio": 0.12,
+    "lufs": -15,
+    "regenerar": true
+  },
+  "musica": {
+    "tipo": "procedural_ritmica",
+    "lufs": -18,
+    "acorde_dur": 4,
+    "pad_lowpass": 1200,
+    "fade_in": 0.8,
+    "fade_out": 2.4,
+    "_alternativa_archivo": "{\"tipo\": \"archivo\", \"archivo\": \"proyectos/<slug>/recursos/mi-pista.mp3\", \"inicio\": 0, \"lufs\": -18, \"fade_in\": 0.9, \"fade_out\": 2.6}"
+  },
+  "ducking": {"threshold": 0.05, "ratio": 3, "attack": 25, "release": 350}
+}

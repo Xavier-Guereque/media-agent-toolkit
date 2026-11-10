@@ -1,0 +1,24 @@
+{
+  "_comentario": "Ejemplo mínimo del motor promo (10 s): intro con salto al hiperespacio, un enunciado y el cierre con CTA. Copia este archivo a proyectos/<slug>_<DDMMAAAA>/promo.json y cambia SOLO el contenido.",
+  "version": 1,
+  "formato": "promo_ui",
+  "tema": "neutro",
+  "semilla": 7,
+  "salida": { "relacion": "9:16", "duracion": 10, "archivo": "demo-10s.mp4" },
+  "marca": { "producto": "AI", "version": "v5" },
+  "audio": { "musica": { "tipo": "procedural", "bpm": 112 }, "sfx": "sutil", "voz": null },
+  "escenas": [
+    { "tipo": "intro", "titulo": "AI para *PROs*" },
+    {
+      "tipo": "texto",
+      "texto": "Cotiza un proyecto *completo* en segundos.",
+      "apoyo": "Con existencias reales y la cotización con tu logo."
+    },
+    {
+      "tipo": "cierre",
+      "lema": "AI para *PROs.*",
+      "cta": { "texto": "Escríbele por WhatsApp", "icono": "whatsapp" },
+      "contacto": "+52 55 0000 0000 · acme.example · App ACME PRO"
+    }
+  ]
+}

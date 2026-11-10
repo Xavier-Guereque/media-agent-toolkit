@@ -1,0 +1,119 @@
+{
+  "doc": "App móvil: teléfono tipo iPhone (sin logos de Apple) con la app de la marca: barra de búsqueda con IA que pasa a \"Escuchando\" al tocar el micrófono, 1–2 widgets (lista con puntos de estado o cifra grande) y el ícono de la app; al final baja una notificación con la respuesta.",
+  "tinte_defecto": "petroleo",
+  "duracion": {
+    "min": 3.2,
+    "max": 9
+  },
+  "titular": true,
+  "subtitulo": true,
+  "uniones": {
+    "widget_tel": {
+      "por": "tipo",
+      "variantes": {
+        "lista": {
+          "props": {
+            "titulo": {
+              "t": "texto",
+              "max_palabras": 2,
+              "max_car": 12,
+              "doc": "Encabezado del widget, se muestra en versalitas (\"Pedidos\")."
+            },
+            "lineas": {
+              "t": "lista",
+              "min": 1,
+              "max": 3,
+              "de": {
+                "t": "texto",
+                "max_palabras": 4,
+                "max_car": 15,
+                "doc": "Renglón de estado (\"En camino · 2\"). Los puntos van verde, azul y gris en ese orden."
+              },
+              "doc": "Renglones con punto de color."
+            }
+          }
+        },
+        "cifra": {
+          "props": {
+            "titulo": {
+              "t": "texto",
+              "max_palabras": 2,
+              "max_car": 12,
+              "doc": "Encabezado del widget (\"Carrito\")."
+            },
+            "cifra": {
+              "t": "texto",
+              "max_car": 5,
+              "patron": "^[0-9$.,%+kK ]+$",
+              "doc": "Número grande (\"18\")."
+            },
+            "detalle": {
+              "t": "texto",
+              "opcional": true,
+              "max_palabras": 3,
+              "max_car": 17,
+              "doc": "Texto bajo la cifra (\"partidas listas\")."
+            },
+            "enlace": {
+              "t": "texto",
+              "opcional": true,
+              "max_palabras": 3,
+              "max_car": 14,
+              "doc": "Enlace azul con › (\"Ver carrito\")."
+            }
+          }
+        }
+      }
+    }
+  },
+  "props": {
+    "app": {
+      "t": "texto",
+      "max_palabras": 3,
+      "max_car": 16,
+      "doc": "Nombre de la app bajo su ícono (\"ACME PRO\"). El ícono usa la inicial del logo de la marca."
+    },
+    "busqueda": {
+      "t": "texto",
+      "defecto": "Pregunta a la IA",
+      "max_palabras": 4,
+      "max_car": 16,
+      "doc": "Texto guía de la barra de búsqueda."
+    },
+    "escucha": {
+      "t": "texto",
+      "defecto": "Escuchando",
+      "max_palabras": 1,
+      "max_car": 11,
+      "doc": "Estado al tocar el micrófono (va seguido de la onda de voz)."
+    },
+    "widgets": {
+      "t": "lista",
+      "min": 1,
+      "max": 2,
+      "de": {
+        "t": "union",
+        "nombre": "widget_tel"
+      },
+      "doc": "Widgets de la pantalla de inicio: {\"tipo\": \"lista\", …} o {\"tipo\": \"cifra\", …}."
+    },
+    "notificacion": {
+      "t": "objeto",
+      "props": {
+        "titulo": {
+          "t": "texto",
+          "max_palabras": 3,
+          "max_car": 18,
+          "doc": "Remitente de la notificación (\"ACME AI\")."
+        },
+        "texto": {
+          "t": "texto",
+          "max_palabras": 18,
+          "max_car": 104,
+          "doc": "Mensaje (hasta 3 renglones): \"Sí, hay NVR de 32 canales con PoE+ en Monterrey (DS7732NXIK4/16P). ¿Lo agrego a tu carrito?\"."
+        }
+      },
+      "doc": "Notificación que baja al final con la respuesta de la IA."
+    }
+  }
+}

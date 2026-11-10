@@ -1,0 +1,22 @@
+{
+  "version": 1,
+  "_doc": "Texto en pantalla → texto para el TTS (scripts/voz.py). Regla dura: UN token → UN token (se permiten guiones, nunca espacios), para que el conteo de palabras de la voz sea igual al del subtítulo y el karaoke empate palabra por palabra. Se busca el token sin la puntuación de los bordes: exacto primero, luego sin distinguir mayúsculas. 'marcas' alimenta los avisos de scripts/lint_voz.py (marca al inicio de línea o en dos líneas seguidas).",
+  "marcas": ["ACME", "WhatsApp", "Excel", "Hikvision", "Fluke"],
+  "palabras": {
+    "ACME": "Ák-me",
+    "AI": "Ei-Ái",
+    "WhatsApp": "wátsap",
+    "Excel": "éxcel",
+    "PROs": "pros",
+    "PRO": "pro",
+    "4K": "cuatro-ka",
+    "PoE": "po-e",
+    "PoE+": "po-e-plus",
+    "WiFi": "wai-fai",
+    "Wi-Fi": "wai-fai",
+    "app": "ap",
+    "apps": "aps",
+    "online": "onláin",
+    "Hikvision": "jik-víshon"
+  }
+}

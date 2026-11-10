@@ -1,0 +1,60 @@
+{
+  "nombre": "neutro",
+  "_origen": "Tokens medidos cuadro a cuadro sobre el video de referencia (promo de asistente IA con UI animada, 9:16, 30 s) y la guía del método HTML + seek(t).",
+  "colores": {
+    "base": "#0b0e14",
+    "tarjeta": "#131418",
+    "tarjeta2": "#1a1c21",
+    "cabecera": "#1d1f25",
+    "borde": "#2a2d34",
+    "texto": "#f4f5f7",
+    "texto2": "#b9c0cf",
+    "atenuado": "#9aa0ad",
+    "tenue": "#6b7385",
+    "marca": "#4b67d6",
+    "marca_osc": "#3958bf",
+    "marca_claro": "#98b6f5",
+    "amarillo": "#f5c542",
+    "exito": "#3ecf7a",
+    "cta": "#1b9f57",
+    "cta_brillo": "#27c46e",
+    "whatsapp": "#25d366"
+  },
+  "tintes": {
+    "ninguno": ["#0b0e14", "#0b0e14"],
+    "teal": ["#35545d", "#2a3a48"],
+    "azul_rojo": ["#294a5e", "#4a2632"],
+    "verde": ["#10402f", "#0f3a2c"],
+    "granate": ["#5e2f39", "#4d2533"],
+    "violeta": ["#243052", "#322b48"],
+    "petroleo": ["#2f4a4f", "#253b44"],
+    "marino": ["#152447", "#171d3b"]
+  },
+  "fuentes": {
+    "titulo": "Sora",
+    "texto": "Figtree",
+    "mono": "JetBrains Mono",
+    "cargar": ["400 40px Figtree", "500 40px Figtree", "600 40px Figtree", "700 40px Figtree",
+               "600 60px Sora", "700 60px Sora", "800 60px Sora", "500 30px 'JetBrains Mono'"]
+  },
+  "marca": {
+    "nombre": "MARCA",
+    "logo": "logo.svg",
+    "producto": "AI",
+    "version": "v5",
+    "proporcion_logo": 8.449
+  },
+  "avisos": {
+    "ilustrativo": "Interfaz y datos ilustrativos.",
+    "ia": "Puede cometer errores. Verifica info importante."
+  },
+  "titular": { "x": 90, "y": 262, "ancho": 900, "max": 66, "min": 46, "lineas": 3 },
+  "movimiento": {
+    "transicion": 0.45,
+    "arranque": 0.2,
+    "tipeo": { "stagger": 0.05, "fade": 0.32 },
+    "lectura": { "pps": 3.0, "extra": 0.6 },
+    "estirar_max": 2.5
+  },
+  "zonas_seguras": { "arriba": 150, "abajo": 420, "derecha": 140, "derecha_desde_y": 900, "derecha_hasta_y": 1500 }
+}

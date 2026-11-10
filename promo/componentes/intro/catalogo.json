@@ -1,0 +1,23 @@
+{
+  "doc": "Arranque: salto al hiperespacio (líneas radiales) con un título grande; luego aparece la marca (logo + producto + versión).",
+  "tinte_defecto": "marino",
+  "duracion": {
+    "min": 2.4,
+    "max": 6
+  },
+  "titular": false,
+  "props": {
+    "titulo": {
+      "t": "texto",
+      "max_palabras": 5,
+      "max_car": 32,
+      "enfasis": true,
+      "doc": "Título corto; *énfasis* en la palabra clave (\"AI para *PROs*\")."
+    },
+    "marca": {
+      "t": "booleano",
+      "defecto": true,
+      "doc": "Mostrar el lockup de marca después del salto."
+    }
+  }
+}

@@ -1,0 +1,322 @@
+{
+  "_comentario": "Ejemplo de oro (30 s, 9:16): promo de un asistente IA con UI animada y cierre con CTA a WhatsApp. Copia este archivo y cambia SOLO el contenido. Los hechos y datos son ilustrativos: reemplázalos por hechos confirmados con su fuente.",
+  "version": 1,
+  "formato": "promo_ui",
+  "tema": "neutro",
+  "semilla": 7,
+  "salida": {
+    "relacion": "9:16",
+    "duracion": 30,
+    "archivo": "asistente-ia-cta-whatsapp.mp4"
+  },
+  "marca": {
+    "producto": "AI",
+    "version": "v5"
+  },
+  "audio": {
+    "musica": {
+      "tipo": "procedural",
+      "bpm": 112
+    },
+    "sfx": "sutil",
+    "voz": null
+  },
+  "hechos": {
+    "h1": "El asistente arma cotizaciones de proyectos completos con existencias (ejemplo: confirmar con fuente)",
+    "h2": "Identifica equipos a partir de una foto (ejemplo: confirmar con fuente)",
+    "h3": "Atiende por WhatsApp con audio o lista en Excel (ejemplo: confirmar con fuente)",
+    "h4": "Gestiona desbloqueos, rastreo de guías y garantías (ejemplo: confirmar con fuente)",
+    "h5": "Recuerda proyectos y contexto entre canales (ejemplo: confirmar con fuente)",
+    "h6": "Disponible en la app móvil con búsqueda por voz (ejemplo: confirmar con fuente)"
+  },
+  "escenas": [
+    {
+      "tipo": "intro",
+      "titulo": "AI para *PROs*"
+    },
+    {
+      "tipo": "chat",
+      "tinte": "teal",
+      "respaldo": [
+        "h1"
+      ],
+      "titular": "“Oficina de 400 m²: 12 cámaras de 4 MP y 30 días de grabación. Cotízalo.”",
+      "subtitulo": [
+        "Descríbele tu proyecto y te arma",
+        "la solución completa,",
+        "con existencias y cotización con tu logo."
+      ],
+      "chat": {
+        "chip": "Videovigilancia",
+        "items": [
+          {
+            "tipo": "usuario",
+            "texto": "Oficina de 400 m²: 12 cámaras de 4 MP, 30 días de grabación. Cotízalo."
+          },
+          {
+            "tipo": "pasos",
+            "pasos": [
+              "Buscando: bala IP 4 MP AcuSense",
+              "Buscando: NVR 16 canales PoE+",
+              "Consultando existencias por sucursal…"
+            ]
+          },
+          {
+            "tipo": "razonamiento",
+            "texto": "12 × 4 MP · H.265+ · 30 días: 10 TB en 2 discos de 6 TB. NVR con 16 PoE+: sin switch extra."
+          },
+          {
+            "tipo": "productos",
+            "conector": "Cat6 exterior",
+            "productos": [
+              {
+                "nombre": "Bala IP 4 MP",
+                "modelo": "DS2CD2043G2LI2U",
+                "cantidad": 12,
+                "icono": "camara"
+              },
+              {
+                "nombre": "NVR 16 · PoE+ · 4K",
+                "modelo": "DS7616NXIK2/16P",
+                "cantidad": 1,
+                "icono": "disco"
+              },
+              {
+                "nombre": "Disco 6 TB Purple",
+                "modelo": "WD64PURZ",
+                "cantidad": 2,
+                "icono": "base_datos"
+              }
+            ],
+            "accesorios": [
+              {
+                "nombre": "Caja de conexión",
+                "cantidad": 12,
+                "icono": "paquete"
+              },
+              {
+                "nombre": "Bobina UTP 305 m",
+                "cantidad": 1,
+                "icono": "capas"
+              }
+            ]
+          },
+          {
+            "tipo": "asistente",
+            "texto": "*5 partidas, todas con existencia.* Te dejo la cotización:"
+          },
+          {
+            "tipo": "cotizacion",
+            "titulo": "Cotización para tu cliente",
+            "detalle": "Con tu logo · 5 partidas · PDF"
+          }
+        ]
+      }
+    },
+    {
+      "tipo": "chat",
+      "tinte": "azul_rojo",
+      "respaldo": [
+        "h2"
+      ],
+      "titular": "“¿Tienes algo como esto?”",
+      "subtitulo": [
+        "Mándale una foto:",
+        "te dice qué equipo es y dónde hay."
+      ],
+      "chat": {
+        "chip": "General",
+        "items": [
+          {
+            "tipo": "imagen",
+            "icono": "camara",
+            "texto": "¿Tienes algo como esto?",
+            "escaneo": "Domo IP 4 MP · 98 %"
+          },
+          {
+            "tipo": "asistente",
+            "texto": "Es un *domo IP 4 MP de HIKVISION.*"
+          },
+          {
+            "tipo": "ficha",
+            "marca": "HIKVISION",
+            "nombre": "Domo IP 4 MP · Dual Light",
+            "modelo": "DS2CD2143G2IU",
+            "existencias": [
+              {
+                "lugar": "Monterrey",
+                "cantidad": "38 pzas"
+              },
+              {
+                "lugar": "Guadalajara",
+                "cantidad": "24 pzas"
+              },
+              {
+                "lugar": "CDMX",
+                "cantidad": "61 pzas"
+              }
+            ],
+            "toast": "Agregado a tu carrito"
+          }
+        ]
+      }
+    },
+    {
+      "tipo": "chat",
+      "tinte": "verde",
+      "respaldo": [
+        "h3"
+      ],
+      "titular": "“Agrégame la lista de la obra y dos bobinas de Cat6.”",
+      "subtitulo": [
+        "Por WhatsApp,",
+        "con un audio o tu lista en Excel."
+      ],
+      "chat": {
+        "piel": "whatsapp",
+        "items": [
+          {
+            "tipo": "nota_voz",
+            "duracion": "0:07",
+            "transcripcion": "Agrégame la lista de la obra y dos bobinas de Cat6 exterior"
+          },
+          {
+            "tipo": "archivo",
+            "nombre": "lista_obra.xlsx",
+            "detalle": "18 partidas · XLSX · 24 KB",
+            "formato": "xlsx"
+          },
+          {
+            "tipo": "asistente",
+            "texto": "Listo: agregué *18 partidas* y 2 bobinas Cat6 exterior a tu carrito. ¿Te busco sustitutos con stock?"
+          }
+        ]
+      }
+    },
+    {
+      "tipo": "acciones",
+      "tinte": "granate",
+      "respaldo": [
+        "h4"
+      ],
+      "titular": [
+        "“Olvidé la contraseña del NVR.”",
+        "“¿Dónde va mi guía 4829 1057 3316?”",
+        "“Garantía del último equipo que compré.”"
+      ],
+      "subtitulo": [
+        "Desbloquea equipos HIKVISION,",
+        "rastrea guías y abre garantías."
+      ],
+      "acciones": [
+        {
+          "tipo": "tarea",
+          "icono": "llave",
+          "titulo": "Desbloqueo HIKVISION",
+          "detalle": "NVR · archivo SADP adjunto",
+          "proceso": "Generando archivo de desbloqueo…",
+          "listo": "Archivo de desbloqueo listo",
+          "boton": "Descargar"
+        },
+        {
+          "tipo": "rastreo",
+          "icono": "camion",
+          "titulo": "Rastreo por guía",
+          "detalle": "4829 1057 3316",
+          "inicio": "Recolectado",
+          "fin": "En camino · llega mañana",
+          "avance": 0.72
+        },
+        {
+          "tipo": "tarea",
+          "icono": "escudo",
+          "titulo": "Garantía",
+          "detalle": "DS2CD2043G2LI2U · compra de julio",
+          "proceso": "Abriendo orden de servicio…",
+          "listo": "Orden de servicio *05-48213* creada"
+        }
+      ]
+    },
+    {
+      "tipo": "diagrama",
+      "tinte": "violeta",
+      "respaldo": [
+        "h5"
+      ],
+      "titular": "“¿Cómo quedó lo de la bodega?”",
+      "subtitulo": [
+        "Y ahora tiene memoria:",
+        "recuerda tus proyectos y cómo trabajas."
+      ],
+      "nodos": [
+        {
+          "icono": "web",
+          "texto": "Web"
+        },
+        {
+          "icono": "whatsapp",
+          "texto": "WhatsApp"
+        },
+        {
+          "icono": "app",
+          "texto": "App ACME PRO"
+        }
+      ],
+      "centro": "Memoria",
+      "icono_centro": "cerebro",
+      "chips": [
+        "Proyecto: *Bodega Monterrey*",
+        "Marca: *HIKVISION*",
+        "Pendiente: *Cotización*"
+      ],
+      "pregunta": "¿Cómo quedó lo de la bodega?",
+      "pensando": "Recordando tus proyectos",
+      "respuesta": "Tu cotización de la *bodega en Monterrey* sigue abierta: *24 cámaras 4 MP* y NVR de 32 canales. ¿Le agrego los discos para 30 días?"
+    },
+    {
+      "tipo": "telefono",
+      "tinte": "petroleo",
+      "respaldo": [
+        "h6"
+      ],
+      "titular": "“¿Hay NVR de 32 canales en Monterrey?”",
+      "subtitulo": [
+        "En web,",
+        "WhatsApp y la app ACME PRO."
+      ],
+      "app": "ACME PRO",
+      "busqueda": "Pregunta a la IA",
+      "widgets": [
+        {
+          "tipo": "lista",
+          "titulo": "Pedidos",
+          "lineas": [
+            "En camino · 2",
+            "Surtiendo · 1",
+            "Facturado · 4"
+          ]
+        },
+        {
+          "tipo": "cifra",
+          "titulo": "Carrito",
+          "cifra": "18",
+          "detalle": "partidas listas",
+          "enlace": "Ver carrito"
+        }
+      ],
+      "notificacion": {
+        "titulo": "ACME AI",
+        "texto": "Sí, hay NVR de 32 canales con PoE+ en Monterrey (DS7732NXIK4/16P). ¿Lo agrego a tu carrito?"
+      }
+    },
+    {
+      "tipo": "cierre",
+      "lema": "AI para *PROs.*",
+      "cta": {
+        "texto": "Escríbele por WhatsApp",
+        "icono": "whatsapp"
+      },
+      "contacto": "+52 55 0000 0000 · acme.example · App ACME PRO"
+    }
+  ]
+}
