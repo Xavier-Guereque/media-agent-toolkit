@@ -64,7 +64,7 @@ class TestRaizRepo(unittest.TestCase):
             os.makedirs(hondo)
             # Sin marcadores (el tmp del sistema no tiene .git/AGENT.md): devuelve el inicio.
             self.assertEqual(comun.raiz_repo(hondo), hondo)
-            open(os.path.join(tmp, "AGENT.md"), "w").close()
+            open(os.path.join(tmp, "AGENT.md"), "w", encoding="utf-8").close()
             self.assertEqual(comun.raiz_repo(hondo), tmp)
 
 
@@ -72,7 +72,7 @@ class TestNode(unittest.TestCase):
     def test_buscar_node_version_minima(self):
         ruta = comun.buscar_node(REPO)
         self.assertTrue(os.path.exists(ruta))
-        v = subprocess.run([ruta, "--version"], capture_output=True, text=True).stdout.strip()
+        v = subprocess.run([ruta, "--version"], capture_output=True, text=True, encoding="utf-8", errors="replace").stdout.strip()
         self.assertGreaterEqual(int(v.lstrip("v").split(".")[0]), 20, v)
 
 
@@ -116,7 +116,7 @@ class TestFFmpeg(unittest.TestCase):
         with tempfile.TemporaryDirectory() as tmp:
             comun.log_costo(tmp, {"id": "gen-1", "modelo": "m/x", "tarea": "tts", "usage": {"cost": 0.1}})
             comun.log_costo(tmp, {"id": "gen-2", "modelo": "m/x", "tarea": "vision"})
-            with open(os.path.join(tmp, "costos.jsonl")) as f:
+            with open(os.path.join(tmp, "costos.jsonl"), encoding="utf-8") as f:
                 lineas = [json.loads(l) for l in f]
             self.assertEqual(len(lineas), 2)
             self.assertEqual(set(lineas[0]), {"id", "modelo", "tarea", "ts", "usage"})
@@ -133,7 +133,7 @@ class TestMotorNode(unittest.TestCase):
 
     def motor(self, tmp, cuerpo):
         ruta = os.path.join(tmp, "motor.mjs")
-        with open(ruta, "w") as f:
+        with open(ruta, "w", encoding="utf-8") as f:
             f.write(cuerpo)
         return ruta
 

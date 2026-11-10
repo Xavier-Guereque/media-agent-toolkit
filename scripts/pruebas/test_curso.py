@@ -211,7 +211,7 @@ class TestValidar(Base):
         s = copy.deepcopy(self.spec)
         self.lec(s)["preguntas"] = []
         self.assertIn("E-CURSO-PREGUNTAS-MIN", self.validar(s)[0])
-        with open(self.c.spec, "w") as f:
+        with open(self.c.spec, "w", encoding="utf-8") as f:
             f.write("{")
         cod, out = self.correr("validar", self.c.dir)
         self.assertEqual(cod, 2)
@@ -321,7 +321,7 @@ class TestFlujo(Base):
         self.assertEqual(self.correr("voz", self.c.dir, "--leccion", "m1-l1")[0], 0)
         lec = self.c.leccion("m1-l1")
         self.assertTrue(os.path.exists(os.path.join(lec.dir, f"{self.c.slug}_m1-l1.vtt")))
-        with open(os.path.join(self.c.rec, "avance.jsonl")) as f:
+        with open(os.path.join(self.c.rec, "avance.jsonl"), encoding="utf-8") as f:
             self.assertIn('"voz"', f.read())
         cod, out = self.correr("componer", self.c.dir, "--leccion", "m1-l1")
         self.assertEqual(cod, 0, out)
@@ -386,7 +386,7 @@ class TestFlujo(Base):
         base = os.path.dirname(self.c.dir)
         for n in ("x_31102026", "x_01112026", "ab_01112026", "ac_01112026"):
             os.makedirs(os.path.join(base, n))
-            open(os.path.join(base, n, "curso.json"), "w").close()
+            open(os.path.join(base, n, "curso.json"), "w", encoding="utf-8").close()
         a = Namespace(raiz=self.tmp.name)
         self.assertEqual(curso.resolver("x", a).nombre, "x_01112026")
         with self.assertRaises(SystemExit), contextlib.redirect_stdout(io.StringIO()):

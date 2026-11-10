@@ -28,7 +28,7 @@ HL_ON, HL_OFF = r"{\c&H00D7FF&}", r"{\c&HFFFFFF&}"
 
 # ---------------------------------------------------------------- utilidades
 def run(cmd, log=True):
-    r = subprocess.run(cmd, capture_output=True, text=True)
+    r = subprocess.run(cmd, capture_output=True, text=True, encoding="utf-8", errors="replace")
     if r.returncode != 0:
         if log:
             print("FALLO:", " ".join(str(c) for c in cmd[:10]))
@@ -39,7 +39,7 @@ def run(cmd, log=True):
 
 def dur(p):
     return float(subprocess.run(["ffprobe", "-v", "error", "-show_entries", "format=duration",
-                                 "-of", "csv=p=0", p], capture_output=True, text=True).stdout.strip())
+                                 "-of", "csv=p=0", p], capture_output=True, text=True, encoding="utf-8", errors="replace").stdout.strip())
 
 
 def api_key(repo, spec):
@@ -48,7 +48,7 @@ def api_key(repo, spec):
         return os.environ[v]
     env = os.path.join(repo, ".env")
     if os.path.exists(env):
-        with open(env) as f:
+        with open(env, encoding="utf-8") as f:
             for l in f:
                 if l.startswith(v + "="):
                     return l.split("=", 1)[1].strip()
@@ -77,7 +77,7 @@ class Reel:
         self.spec_path = os.path.abspath(spec_path)
         self.proj = os.path.dirname(self.spec_path)
         self.repo = self._raiz_repo(self.proj)
-        self.spec = json.load(open(self.spec_path))
+        self.spec = json.load(open(self.spec_path, encoding="utf-8"))
         s = self.spec.get("salida", {})
         self.W = s.get("w", 1080)
         self.H = s.get("h", 1920)
@@ -345,7 +345,7 @@ Format: Layer, Start, End, Style, Name, MarginL, MarginR, MarginV, Effect, Text
         json.dump({"total": round(total, 3), "starts": [round(x, 3) for x in starts],
                    "offsets": [{"linea": i + 1, "offset": round(starts[i] + self.spec["voz"].get("offset", 0.6), 2)}
                                for i in range(N)]},
-                  open(os.path.join(self.rec, "offsets.json"), "w"), indent=2)
+                  open(os.path.join(self.rec, "offsets.json"), "w", encoding="utf-8"), indent=2)
         print(f"subs.ass listo ({len(ev)} eventos) · total {total:.2f}s")
 
     # ------------------------------------------------------------ audio
@@ -388,7 +388,7 @@ Format: Layer, Start, End, Style, Name, MarginL, MarginR, MarginV, Effect, Text
             raise SystemExit("TTS: sin audio")
         open(pcm, "wb").write(base64.b64decode("".join(chunks)))
         import datetime
-        with open(os.path.join(self.rec, "costos.jsonl"), "a") as f:
+        with open(os.path.join(self.rec, "costos.jsonl"), "a", encoding="utf-8") as f:
             e = {"id": gid, "modelo": payload["model"], "tarea": "tts",
                  "ts": datetime.datetime.now().isoformat()}
             if usage:
@@ -397,7 +397,7 @@ Format: Layer, Start, End, Style, Name, MarginL, MarginR, MarginV, Effect, Text
 
     def etapa_audio(self):
         v = self.spec["voz"]
-        off = json.load(open(os.path.join(self.rec, "offsets.json")))["offsets"]
+        off = json.load(open(os.path.join(self.rec, "offsets.json"), encoding="utf-8"))["offsets"]
         lineas = v["lineas"]
         voz = v.get("voz", "coral")
         ins, filt, tags = [], [], []
@@ -417,7 +417,7 @@ Format: Layer, Start, End, Style, Name, MarginL, MarginR, MarginV, Effect, Text
             ms = int(round(off[i - 1]["offset"] * 1000))
             filt.append(f"[{i-1}:a]aresample=48000,adelay={ms}|{ms}[a{i}]")
             tags.append(f"[a{i}]")
-        total = json.load(open(os.path.join(self.rec, "offsets.json")))["total"]
+        total = json.load(open(os.path.join(self.rec, "offsets.json"), encoding="utf-8"))["total"]
         body = ";".join(filt) + ";" + "".join(tags) + \
             f"amix=inputs={len(tags)}:normalize=0[sum];" \
             f"[sum]loudnorm=I={v.get('lufs', -15)}:TP=-1.5:LRA=11,apad,atrim=0:{total}[voz]"
@@ -544,7 +544,7 @@ Format: Layer, Start, End, Style, Name, MarginL, MarginR, MarginV, Effect, Text
                 "-movflags", "+faststart", salida])
         print(f"RENDER START ({total:.2f}s -> {salida})")
         import time
-        p = subprocess.Popen(cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True, bufsize=1)
+        p = subprocess.Popen(cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True, encoding="utf-8", errors="replace", bufsize=1)
         vistos, t0 = set(), time.time()
         for linea in p.stdout:                      # tolera out_time_ms=N/A al cerrar
             if linea.startswith("out_time_ms="):
@@ -605,13 +605,13 @@ Format: Layer, Start, End, Style, Name, MarginL, MarginR, MarginV, Effect, Text
     def etapa_niveles(self):
         a = os.path.join(self.rec, "audio_final.wav")
         r = subprocess.run(["ffmpeg", "-v", "info", "-i", a, "-af", "loudnorm=print_format=summary",
-                            "-f", "null", "-"], capture_output=True, text=True)
+                            "-f", "null", "-"], capture_output=True, text=True, encoding="utf-8", errors="replace")
         print("\n".join(l.strip() for l in r.stderr.splitlines()
                         if "Input Integrated" in l or "Input True Peak" in l))
         for nombre, frac in (("bajo voz", 0.15), ("cola", 0.98)):
             t = self.total * frac
             rr = subprocess.run(["ffmpeg", "-v", "info", "-ss", str(t), "-t", "1.5", "-i", a,
-                                 "-af", "volumedetect", "-f", "null", "-"], capture_output=True, text=True)
+                                 "-af", "volumedetect", "-f", "null", "-"], capture_output=True, text=True, encoding="utf-8", errors="replace")
             print(f"[{nombre} @{t:.1f}s] " + " | ".join(x.strip() for x in rr.stderr.splitlines()
                                                        if "max_volume" in x))
 

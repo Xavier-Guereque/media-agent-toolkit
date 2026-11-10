@@ -54,14 +54,14 @@ class TestVoz(unittest.TestCase):
         self.assertEqual((r["nuevas"], r["cache"]), (2, 0))
         self.assertIn("Repite verbatim", tts.llamadas[0][1])
         self.assertEqual(tts.llamadas[0][0], "Cotiza con Ák-me Ei-Ái, sin esperar.")
-        with open(os.path.join(self.rec, "voz", "tiempos.json")) as f:
+        with open(os.path.join(self.rec, "voz", "tiempos.json"), encoding="utf-8") as f:
             t = json.load(f)
         self.assertEqual(t["version"], 1)
         for linea, texto in zip(t["lineas"], textos):
             wav = os.path.join(self.rec, linea["archivo"])
             self.assertTrue(linea["archivo"].startswith("voz/l1_"))
             r2 = subprocess.run(["ffprobe", "-v", "error", "-show_entries", "stream=sample_rate,channels",
-                                 "-of", "csv=p=0", wav], capture_output=True, text=True)
+                                 "-of", "csv=p=0", wav], capture_output=True, text=True, encoding="utf-8", errors="replace")
             self.assertEqual(r2.stdout.strip(), "48000,1")
             self.assertAlmostEqual(linea["dur"], comun.dur(wav), delta=0.002)
             self.assertEqual([p["w"] for p in linea["palabras"]], texto.split(" "))   # conteo de pantalla
@@ -73,7 +73,7 @@ class TestVoz(unittest.TestCase):
         p = t["lineas"][0]["palabras"]
         self.assertGreater(p[4]["a"] - p[3]["b"], 0.2)
         # Costos: una línea por llamada, tarea tts.
-        with open(os.path.join(self.rec, "costos.jsonl")) as f:
+        with open(os.path.join(self.rec, "costos.jsonl"), encoding="utf-8") as f:
             costos = [json.loads(l) for l in f]
         self.assertEqual([c["tarea"] for c in costos], ["tts", "tts"])
         # Caché: misma línea, misma voz → no se vuelve a pagar.
@@ -126,7 +126,7 @@ class TestEnLinea(unittest.TestCase):
     def test_flujo_completo_con_voz(self):
         with tempfile.TemporaryDirectory() as raiz:
             correr = lambda *a: subprocess.run([sys.executable, os.path.join(SCRIPTS, "promo.py"), *a, "--raiz", raiz],  # noqa: E731
-                                               capture_output=True, text=True, cwd=REPO)
+                                               capture_output=True, text=True, encoding="utf-8", errors="replace", cwd=REPO)
             self.assertEqual(correr("nuevo", "voz-en-linea").returncode, 0)
             proy = os.path.join(raiz, "proyectos", os.listdir(os.path.join(raiz, "proyectos"))[0])
             spec = {"version": 1, "formato": "promo_ui", "tema": "neutro", "semilla": 7,
@@ -151,14 +151,14 @@ class TestEnLinea(unittest.TestCase):
                 shutil.copytree(proy, os.path.join(conservar, os.path.basename(proy)), dirs_exist_ok=True)
             self.assertEqual(r.returncode, 0, r.stdout + r.stderr)
             self.assertIn("(linear)", r.stdout)                    # la mezcla con voz no se recomprime
-            with open(os.path.join(proy, "recursos", "voz", "tiempos.json")) as f:
+            with open(os.path.join(proy, "recursos", "voz", "tiempos.json"), encoding="utf-8") as f:
                 t = json.load(f)
             self.assertEqual(len(t["lineas"]), 2)
             for l in t["lineas"]:
                 self.assertEqual(len(l["palabras"]), len(l["texto"].split(" ")))
             with open(os.path.join(proy, "voz-en-linea.srt"), encoding="utf-8") as f:
                 self.assertEqual(f.read().count(" --> "), 2)
-            with open(os.path.join(proy, "recursos", "costos.jsonl")) as f:
+            with open(os.path.join(proy, "recursos", "costos.jsonl"), encoding="utf-8") as f:
                 tareas = [json.loads(l)["tarea"] for l in f]
             self.assertIn("tts", tareas)
             self.assertIn("verificacion_voz", tareas)

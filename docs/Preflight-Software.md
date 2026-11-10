@@ -65,6 +65,7 @@ Preflight OK: todo el software requerido está disponible.
 
 ## Notas
 
+- **Windows:** el script necesita zsh y Homebrew y no corre ahí. Equivalentes con winget y la verificación a mano en `[[AGENT]]` §3b y `[[Lecciones-2026-11-10-compatibilidad-windows]]`.
 - La primera corrida puede tardar si brew/pip instalan paquetes; se reporta lo instalado.
 - Si un requerido no queda disponible, el agente se **detiene** y pide instrucción (no sigue con la edición).
 - Para agregar software **requerido**: editar `config.json > software`, la allowlist `INSTALACION_PERMITIDA` en `scripts/preflight.sh` y esta tabla. Para opcionales basta `config.json` y esta tabla.

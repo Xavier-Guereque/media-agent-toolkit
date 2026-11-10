@@ -50,9 +50,14 @@ SALTO_DEF = 150         # px: salto del centro del bloque que fuerza un rótulo 
 MIN_DUR_DEF = 0.5       # s: bloques más cortos se descartan (ruido de OCR)
 PAD_X_DEF, PAD_Y_DEF = 70, 28
 RADIO_PCT_DEF = 0.32
-FUENTE_SISTEMA = "/System/Library/Fonts/Supplemental/Arial Bold.ttf"
+# Arial Bold de macOS (la verificada) y sus equivalentes en Windows y Linux: la primera que exista.
+FUENTES_SISTEMA = ("/System/Library/Fonts/Supplemental/Arial Bold.ttf",
+                   os.path.join(os.environ.get("WINDIR", r"C:\Windows"), "Fonts", "arialbd.ttf"),
+                   "/usr/share/fonts/truetype/dejavu/DejaVuSans-Bold.ttf",
+                   "/usr/share/fonts/dejavu-sans-fonts/DejaVuSans-Bold.ttf")
+FUENTE_SISTEMA = next((f for f in FUENTES_SISTEMA if os.path.isfile(f)), FUENTES_SISTEMA[0])
 CANDIDATOS_PY = ("/opt/homebrew/bin/python3", "/usr/local/bin/python3", "python3.13", "python3.12",
-                 "python3.11", "/usr/bin/python3")
+                 "python3.11", "/usr/bin/python3", "py", "python")
 
 
 # ------------------------------------------------------------------ utilidades
@@ -86,7 +91,7 @@ def asegurar_pillow():
 def ocr_lineas(png, conf_min=CONF_MIN_DEF, min_letras=MIN_LETRAS_DEF):
     """OCR de un PNG → lista de líneas {texto, bbox}, agrupando palabras por (bloque,párrafo,línea)."""
     out = subprocess.run(["tesseract", png, "-", "--psm", "11", "tsv"],
-                         capture_output=True, text=True).stdout
+                         capture_output=True, text=True, encoding="utf-8", errors="replace").stdout
     grupos = {}
     for fila in out.splitlines()[1:]:
         p = fila.split("\t")
@@ -276,7 +281,7 @@ def detectar(a):
     base = os.path.dirname(os.path.abspath(destino))
     spec = {"entrada": os.path.relpath(os.path.abspath(a.video), base),
             "salida": a.salida or "", "fuente": a.fuente or "", "captions": caps}
-    with open(destino, "w") as fh:
+    with open(destino, "w", encoding="utf-8") as fh:
         json.dump(spec, fh, ensure_ascii=False, indent=1)
 
     print(f"# {len(caps)} rótulo(s) detectado(s) en {os.path.basename(a.video)} "
@@ -317,7 +322,7 @@ def generar(a):
     if not os.path.isfile(a.spec):
         print(f"ERROR no existe el spec: {a.spec}", file=sys.stderr)
         return 2
-    with open(a.spec) as fh:
+    with open(a.spec, encoding="utf-8") as fh:
         spec = json.load(fh)
     base = os.path.dirname(os.path.abspath(a.spec))
     entrada = spec["entrada"] if os.path.isabs(spec["entrada"]) else os.path.join(base, spec["entrada"])

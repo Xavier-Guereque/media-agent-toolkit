@@ -31,7 +31,7 @@ import subtitulos  # noqa: E402
 import voz  # noqa: E402
 
 REPO = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-PY_WHISPER = os.path.expanduser("~/.venvs/whisper/bin/python")
+PY_WHISPER = comun.python_de_venv("whisper")
 OPCIONES = {"colchon_inicio": 0.35, "pausa_escena": 0.6, "pausa_pregunta": 5.0, "cola": 0.5, "seg_por_silaba": 0.20}
 _SCRIPT_WHISPER = """
 import json, sys, wave
@@ -117,7 +117,7 @@ def marcas_whisper(wav):
     crudo = wav[:-4] + ".16k.wav"
     comun.run(["ffmpeg", "-y", "-v", "error", "-nostdin", "-i", wav, "-ar", "16000", "-ac", "1", "-c:a", "pcm_s16le", crudo])
     try:
-        r = subprocess.run([PY_WHISPER, "-c", _SCRIPT_WHISPER, crudo], capture_output=True, text=True, timeout=600)
+        r = subprocess.run([PY_WHISPER, "-c", _SCRIPT_WHISPER, crudo], capture_output=True, text=True, encoding="utf-8", errors="replace", timeout=600)
     except subprocess.TimeoutExpired:
         return None
     finally:
@@ -160,7 +160,8 @@ def _colocar_voz(tiempos, rec, total):
     script = os.path.join(rec, "voz", "mezcla_voz.txt")
     with open(script, "w", encoding="utf-8") as f:
         f.write(fc)
-    comun.run(cmd + ["-filter_complex_script", script, "-map", "[v]", "-t", f"{total:.3f}", "-ar", "48000", "-ac", "1",
+    # `-/filter_complex <archivo>` (FFmpeg ≥ 7.0): `-filter_complex_script` se eliminó en FFmpeg 8.
+    comun.run(cmd + ["-/filter_complex", script, "-map", "[v]", "-t", f"{total:.3f}", "-ar", "48000", "-ac", "1",
                      "-c:a", "pcm_s16le", salida])
     return salida
 

@@ -214,7 +214,7 @@ def correr_motor(cmd, proyecto_dir, extra=(), verbose=False, al_avance=None):
     node = comun.buscar_node(REPO)
     args = [node, motor, cmd] + (["--proyecto", proyecto_dir] if proyecto_dir else []) + [str(x) for x in extra]
     p = subprocess.Popen(args, stdout=subprocess.PIPE, stderr=subprocess.PIPE, stdin=subprocess.DEVNULL,
-                         text=True, bufsize=1, cwd=REPO)
+                         text=True, encoding="utf-8", errors="replace", bufsize=1, cwd=REPO)
     salida = []
     hilo = threading.Thread(target=lambda: salida.append(p.stdout.read()), daemon=True)
     hilo.start()
@@ -504,7 +504,7 @@ def sondear(ruta):
     r = subprocess.run(["ffprobe", "-v", "error", "-count_packets", "-show_entries",
                         "stream=codec_type,codec_name,nb_read_packets,duration,pix_fmt,width,height,"
                         "color_primaries,color_transfer,color_space:format=duration",
-                        "-of", "json", ruta], capture_output=True, text=True)
+                        "-of", "json", ruta], capture_output=True, text=True, encoding="utf-8", errors="replace")
     d = json.loads(r.stdout or "{}")
     v = next((s for s in d.get("streams", []) if s.get("codec_type") == "video"), {})
     return v, float((d.get("format") or {}).get("duration") or 0)
@@ -762,11 +762,9 @@ def _render_en_curso(p):
     if os.path.exists(p.render_pid):
         with open(p.render_pid, encoding="utf-8") as f:
             pid = int((f.readline() or "0").strip() or 0)
-        try:
-            os.kill(pid, 0)
+        if comun.pid_vivo(pid):
             return True, avance, None
-        except (OSError, ValueError):
-            return False, avance, "el render se detuvo sin resultado (revisa render.log)"
+        return False, avance, "el render se detuvo sin resultado (revisa render.log)"
     return False, avance, None
 
 

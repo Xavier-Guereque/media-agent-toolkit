@@ -131,7 +131,7 @@ def sondear(ruta):
                         "format=duration:stream=index,codec_type,codec_name,width,height,r_frame_rate,"
                         "avg_frame_rate,duration,sample_rate,channels,color_transfer:"
                         "stream_side_data=rotation:stream_disposition=attached_pic",
-                        "-of", "json", ruta], capture_output=True, text=True)
+                        "-of", "json", ruta], capture_output=True, text=True, encoding="utf-8", errors="replace")
     if r.returncode != 0:
         fallar(f"FFmpeg no puede leer `{ruta}`: {r.stderr.strip()[:200]}", 2,
                "verifica que sea un video o audio válido (ffprobe <archivo>)")
@@ -380,7 +380,7 @@ def renderizar(info, tramos, salida, tmpdir, trozo=TROZO, imprimir=True):
 def duraciones(ruta):
     """{video, audio, formato} en segundos (stream duration; si falta, la del formato)."""
     r = subprocess.run(["ffprobe", "-v", "error", "-show_entries", "format=duration:stream=codec_type,duration",
-                        "-of", "json", ruta], capture_output=True, text=True)
+                        "-of", "json", ruta], capture_output=True, text=True, encoding="utf-8", errors="replace")
     datos = json.loads(r.stdout or "{}")
     fmt = float((datos.get("format") or {}).get("duration") or 0)
     out = {"formato": fmt, "video": None, "audio": None}
@@ -414,7 +414,7 @@ def via_auto_editor(entrada, salida, umbral_db, margen):
     lineal = 10 ** (umbral_db / 20.0)
     r = subprocess.run(["auto-editor", entrada, "--edit", f"audio:threshold={lineal:.4f}",
                         "--margin", f"{margen}s", "--no-open", "-o", salida],
-                       capture_output=True, text=True, stdin=subprocess.DEVNULL)
+                       capture_output=True, text=True, encoding="utf-8", errors="replace", stdin=subprocess.DEVNULL)
     if r.returncode != 0:
         print((r.stderr or r.stdout)[-1200:], file=sys.stderr)
         fallar("auto-editor falló (su CLI cambia entre versiones).", 1, "repite sin --motor (ruta FFmpeg)")

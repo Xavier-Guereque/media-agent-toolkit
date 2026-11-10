@@ -34,7 +34,7 @@ DUCKING = "sidechaincompress=threshold=0.05:ratio=3:attack=25:release=350"
 
 def run(*a):
     """FFmpeg/FFprobe sin ruido; si falla, el error de FFmpeg viaja en la excepción."""
-    r = subprocess.run(a, stdout=subprocess.DEVNULL, stderr=subprocess.PIPE, text=True)
+    r = subprocess.run(a, stdout=subprocess.DEVNULL, stderr=subprocess.PIPE, text=True, encoding="utf-8", errors="replace")
     if r.returncode:
         raise subprocess.CalledProcessError(r.returncode, a, stderr=r.stderr[-2000:])
 
@@ -188,7 +188,7 @@ def mezclar(salida, total, tomas, cama=None, sfx=(), voz_lufs=LUFS_VOZ, musica_l
 def nivel_medio(ruta, desde, dur):
     """mean_volume (dB) de una ventana con volumedetect: para comprobar que la música se oye en pausas y cola."""
     r = subprocess.run(["ffmpeg", "-v", "info", "-nostdin", "-ss", str(desde), "-t", str(dur), "-i", ruta,
-                        "-af", "volumedetect", "-f", "null", "-"], capture_output=True, text=True)
+                        "-af", "volumedetect", "-f", "null", "-"], capture_output=True, text=True, encoding="utf-8", errors="replace")
     for linea in r.stderr.splitlines():
         if "mean_volume:" in linea:
             return float(linea.split("mean_volume:")[1].split()[0])

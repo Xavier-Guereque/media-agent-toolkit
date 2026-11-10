@@ -4,6 +4,7 @@ fecha_modificacion: 2026-11-09
 estado: activo
 ---
 
+<!-- v1.10.0: compatibilidad con Windows 11 (§3b): -/filter_complex en lugar de -filter_complex_script (eliminado en FFmpeg 8+), comun.pid_vivo/terminar_arbol/python_de_venv, UTF-8 en open() y subprocess, fuente de pantalla.py por plataforma, candado msvcrt en fetch_audio.py -->
 <!-- v1.9.0: piezas comunes promovidas a la base: scripts/componer.py (props, mezcla con ducking, specs por orientación), scripts/lienzo.py (lienzos PIL), scripts/curso_spec.py (constructores de curso.json), créditos en commons.py, y en Remotion componentes/Karaoke+Texto y lib/movimiento|fuentes|karaoke; karaoke ya no desaparece en las pausas; remotion.licencia pasa a config.local.json -->
 <!-- v1.8.0: cuestionario de arranque en crear-curso; curso.modo (propósito, evaluación, visual), test entre lecciones en el reproductor, actor imagen y voz_default/tema cine en la base -->
 <!-- v1.7.0: crear-curso (scripts/curso.py, scripts/narrar.py, composición BASE Leccion, cursos/ejemplo) y docs/Metodologia-Cursos-Video: metodología con evidencia, STPS/CONOCER, estándares y formato visual -->
@@ -59,6 +60,15 @@ Antes de ejecutar cualquier comando de la edición, correr `zsh scripts/prefligh
 - Reportar al usuario qué se instaló.
 - Si el preflight falla (un requerido no queda disponible), **detenerse** y pedir instrucción.
 - Detalles en `[[Preflight-Software]]`.
+
+## 3b. Windows
+
+El toolkit se escribió en macOS, pero corre en Windows 11 (verificado 2026-11-10: las 232 pruebas de Python y las 27 del motor promo pasan). Instalación y gotchas en `[[Lecciones-2026-11-10-compatibilidad-windows]]`:
+
+- **Software:** `winget install --id Gyan.FFmpeg -e`, `winget install --id jqlang.jq -e`, `python -m pip install --user pillow` y `npm ci --prefix promo` (usa el Chrome del sistema). Tras instalar, reiniciar la terminal/la app para que el PATH los vea.
+- **Preflight:** `scripts/preflight.sh` depende de zsh y Homebrew y no corre en Windows; verificar a mano lo que declara `config.json > software` (`ffmpeg -version`, `jq --version`, `node --version` ≥ 20, `promo/node_modules`) y reportarlo.
+- **Usar `python`** (o `py`) en lugar de `python3`, que en Windows suele ser el alias de la Tienda.
+- **Código nuevo:** nunca `os.kill(pid, 0)` (en Windows termina el proceso) → `comun.pid_vivo` / `comun.terminar_arbol`; siempre `encoding="utf-8"` en `open()` de texto y en `subprocess` con `text=True`; venvs con `comun.python_de_venv`; para leer un filtro de archivo, `-/filter_complex <archivo>` (`-filter_complex_script` ya no existe en FFmpeg 8+).
 
 ## 4. Regla OpenRouter
 
@@ -373,3 +383,4 @@ Este repo lo descargan varias personas. Las mejoras o correcciones que pida **ca
 - `[[Costos-y-Avance]]` — reporte de costos y avance de render
 - `[[Preferencias-Usuario]]` — preferencias locales no versionadas (gitignored; sección 16)
 - `[[Lecciones-2026-09-28-motor-promo]]` — bitácora técnica (motor promo: E2E con orquestador barato, lockup blindado, determinismo por píxeles, x264 cuello de botella, BT.709, glifos)
+- `[[Lecciones-2026-11-10-compatibilidad-windows]]` — bitácora técnica (el toolkit en Windows 11: winget, `-filter_complex_script` eliminado en FFmpeg 8+, `os.kill(pid, 0)` que mata en Windows, UTF-8 en `open()`/`subprocess`, fuentes y venvs por plataforma, candado con `msvcrt`)

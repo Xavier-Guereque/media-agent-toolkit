@@ -51,7 +51,7 @@ import comun  # noqa: E402
 
 REPO = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 SR = 48000
-WHISPER_PY_DEF = os.path.expanduser("~/.venvs/whisper/bin/python")
+WHISPER_PY_DEF = comun.python_de_venv("whisper")
 VOICESTUDIO_URL_DEF = "http://127.0.0.1:3900"
 FUENTES_DEF = os.path.join(REPO, "promo", "temas", "neutro", "fuentes")
 
@@ -133,7 +133,7 @@ def transcribir_lote(py, wavs, idioma, modelo):
         comun.run(["ffmpeg", "-v", "error", "-y", "-i", wv, "-ac", "1", "-ar", "16000", "-c:a", "pcm_s16le", t], log=False)
         tmps.append(t)
     salida = os.path.join(os.path.dirname(wavs[0]), "asr_lote.json")
-    r = subprocess.run([py, "-I", "-c", WHISPER_LOTE, idioma, modelo, salida, *tmps], capture_output=True, text=True)
+    r = subprocess.run([py, "-I", "-c", WHISPER_LOTE, idioma, modelo, salida, *tmps], capture_output=True, text=True, encoding="utf-8", errors="replace")
     for t in tmps:
         os.remove(t)
     if r.returncode != 0:
@@ -149,7 +149,7 @@ def transcribir_archivo(py, entrada, idioma, modelo, salida_json):
     comun.run(["ffmpeg", "-v", "error", "-y", "-i", entrada, "-vn", "-ac", "1", "-ar", "16000",
                "-c:a", "pcm_s16le", tmp], log=False)
     r = subprocess.run([py, "-I", "-c", WHISPER_SCRIPT, tmp, idioma, modelo, salida_json],
-                       capture_output=True, text=True)
+                       capture_output=True, text=True, encoding="utf-8", errors="replace")
     os.remove(tmp)
     if r.returncode != 0:
         fallo(f"faster-whisper falló: {r.stderr.strip()[-600:]}", 3)
@@ -447,7 +447,7 @@ def region_habla(wav, umbral_db=-38.0, min_sil=0.08):
     total = dur(wav)
     r = subprocess.run(["ffmpeg", "-nostdin", "-i", wav, "-af",
                         f"silencedetect=n={umbral_db}dB:d={min_sil}", "-f", "null", "-"],
-                       capture_output=True, text=True)
+                       capture_output=True, text=True, encoding="utf-8", errors="replace")
     ini, fin = 0.0, total
     starts = [float(m) for m in re.findall(r"silence_start: ([\d.]+)", r.stderr)]
     ends = [float(m) for m in re.findall(r"silence_end: ([\d.]+)", r.stderr)]
@@ -793,7 +793,7 @@ def cmd_render(a):
     total = dur(spec["entrada"])
     probe = subprocess.run(["ffprobe", "-v", "error", "-select_streams", "v:0", "-show_entries",
                             "stream=width,height,r_frame_rate", "-of", "csv=p=0", spec["entrada"]],
-                           capture_output=True, text=True).stdout.strip().split(",")
+                           capture_output=True, text=True, encoding="utf-8", errors="replace").stdout.strip().split(",")
     ancho, alto = int(probe[0]), int(probe[1])
     fps = probe[2]
     carpeta = os.path.join(recursos, "doblaje", "overlays")
@@ -1016,7 +1016,7 @@ def cmd_cortinillas(a):
         else:
             fallo(f"falta el cuerpo doblado {cuerpo} (correr `doblar.py render`)")
     probe = subprocess.run(["ffprobe", "-v", "error", "-select_streams", "v:0", "-show_entries", "stream=width,height,r_frame_rate",
-                            "-of", "csv=p=0", cuerpo], capture_output=True, text=True).stdout.strip().split(",")
+                            "-of", "csv=p=0", cuerpo], capture_output=True, text=True, encoding="utf-8", errors="replace").stdout.strip().split(",")
     ancho, alto, fps = int(probe[0]), int(probe[1]), probe[2]
     carpeta = os.path.join(spec["_base"], "recursos", "doblaje", "cortinillas")
     os.makedirs(carpeta, exist_ok=True)

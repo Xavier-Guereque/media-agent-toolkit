@@ -102,7 +102,7 @@ def momentanea_max(path):
     r = subprocess.run(["ffmpeg", "-nostats", "-hide_banner", "-i", str(path), "-af",
                         "apad=pad_dur=0.5,ebur128=metadata=1,"
                         "ametadata=print:key=lavfi.r128.M:file=-", "-f", "null", "-"],
-                       capture_output=True, text=True)
+                       capture_output=True, text=True, encoding="utf-8", errors="replace")
     vals = [float(v) for v in re.findall(r"lavfi\.r128\.M=(-?[\d.]+)", r.stdout)]
     return max(vals) if vals else -70.0
 
@@ -381,7 +381,7 @@ def perfil_energia(archivo):
                         "aresample=48000,aformat=channel_layouts=stereo,asetnsamples=n=48000,"
                         "astats=metadata=1:reset=1,"
                         "ametadata=print:key=lavfi.astats.Overall.RMS_level:file=-",
-                        "-f", "null", "-"], capture_output=True, text=True)
+                        "-f", "null", "-"], capture_output=True, text=True, encoding="utf-8", errors="replace")
     vals = []
     for v in re.findall(r"lavfi\.astats\.Overall\.RMS_level=(\S+)", r.stdout):
         try:
@@ -922,7 +922,7 @@ def mezclar_con_voz(musica, sfx, lt, lt_path, salida, N, lufs, tp, carpeta, voz_
 
 def _volumen(wav, ini, dur):
     r = subprocess.run(["ffmpeg", "-nostats", "-hide_banner", "-ss", f"{ini:.3f}", "-t", f"{dur:.3f}", "-i", wav,
-                        "-af", "volumedetect", "-f", "null", "-"], capture_output=True, text=True)
+                        "-af", "volumedetect", "-f", "null", "-"], capture_output=True, text=True, encoding="utf-8", errors="replace")
     m = re.search(r"mean_volume:\s*(-?[\d.]+|-inf)", r.stderr)
     return _db_txt(m.group(1)) if m else float("-inf")
 
@@ -935,7 +935,7 @@ def _momentanea(wav):
     """[(t, M LUFS)] de ebur128 (ventana de 400 ms que termina en t)."""
     r = subprocess.run(["ffmpeg", "-nostats", "-hide_banner", "-i", wav, "-af",
                         "ebur128=metadata=1,ametadata=print:key=lavfi.r128.M:file=-", "-f", "null", "-"],
-                       capture_output=True, text=True)
+                       capture_output=True, text=True, encoding="utf-8", errors="replace")
     return list(zip([float(x) for x in re.findall(r"pts_time:([\d.]+)", r.stdout)],
                     [float(x) for x in re.findall(r"lavfi\.r128\.M=(-?[\d.]+)", r.stdout)]))
 

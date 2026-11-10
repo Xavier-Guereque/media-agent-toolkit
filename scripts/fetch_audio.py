@@ -61,6 +61,10 @@ try:
     import fcntl  # candado entre procesos para manifest/credits (macOS/Linux)
 except ImportError:  # pragma: no cover
     fcntl = None
+try:
+    import msvcrt  # el mismo candado en Windows (fcntl no existe ahí)
+except ImportError:
+    msvcrt = None
 
 REPO_ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 
@@ -595,6 +599,21 @@ def _escribir_credits(ruta, filas):
 @contextlib.contextmanager
 def _candado(out_dir):
     """Serializa descargas/escrituras entre procesos (el motor puede pedir varios cues a la vez)."""
+    if fcntl is None and msvcrt is not None:  # Windows: candado de 1 byte al inicio del archivo
+        with open(os.path.join(out_dir, ".fetch_audio.lock"), "a+") as f:
+            f.seek(0)
+            while True:
+                try:
+                    msvcrt.locking(f.fileno(), msvcrt.LK_LOCK, 1)  # reintenta ~10 s antes de fallar
+                    break
+                except OSError:
+                    continue
+            try:
+                yield
+            finally:
+                f.seek(0)
+                msvcrt.locking(f.fileno(), msvcrt.LK_UNLCK, 1)
+        return
     if fcntl is None:  # pragma: no cover
         yield
         return

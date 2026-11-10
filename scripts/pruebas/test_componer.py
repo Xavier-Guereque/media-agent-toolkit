@@ -36,7 +36,7 @@ class TestEscenas(unittest.TestCase):
         self.assertEqual(cp.palabras_relativas(e), [{"w": "x", "a": 0.235, "b": 1.0}])
 
     def test_tomas_de_salta_escenas_sin_voz(self):
-        self.assertEqual(cp.tomas_de(TIEMPOS, "/r"), [("/r/voz/1.wav", 0.35)])
+        self.assertEqual(cp.tomas_de(TIEMPOS, "/r"), [(os.path.join("/r", "voz/1.wav"), 0.35)])
 
 
 class TestAudioYVideo(unittest.TestCase):

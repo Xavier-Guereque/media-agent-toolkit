@@ -41,7 +41,7 @@ def _key(repo):
         return v
     env = os.path.join(repo, ".env")
     if os.path.exists(env):
-        with open(env) as f:
+        with open(env, encoding="utf-8") as f:
             for l in f:
                 if l.startswith("OPENROUTER_API_KEY="):
                     return l.split("=", 1)[1].strip()
@@ -101,7 +101,7 @@ def verificar(lineas, wav_dir=None, repo=".", cifras=None, log=None, tmp=None, w
     texto = resp["choices"][0]["message"]["content"]
     if log:
         os.makedirs(os.path.dirname(log), exist_ok=True)
-        with open(log, "a") as f:
+        with open(log, "a", encoding="utf-8") as f:
             f.write(json.dumps({"id": resp.get("id"), "modelo": modelo, "tarea": "verificacion_voz",
                                 "ts": datetime.datetime.now().isoformat(),
                                 "usage": resp.get("usage")}) + "\n")
@@ -132,7 +132,7 @@ def main():
     ap.add_argument("--cifras", nargs="*", default=[], help='p. ej. "3=250" "6=3 y 4 de marzo"')
     ap.add_argument("--log")
     a = ap.parse_args()
-    lineas = [l for l in open(a.guion).read().strip().split("\n") if l.strip()]
+    lineas = [l for l in open(a.guion, encoding="utf-8").read().strip().split("\n") if l.strip()]
     cifras = dict(c.split("=", 1) for c in a.cifras)
     print(verificar(lineas, a.wav_dir, a.repo, cifras, a.log, tmp=a.tmp, wavs=a.wavs,
                     formato="json" if a.json else "texto"))

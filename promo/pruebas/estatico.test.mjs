@@ -3,7 +3,7 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import fs from 'node:fs';
 import path from 'node:path';
-import { fileURLToPath } from 'node:url';
+import { fileURLToPath, pathToFileURL } from 'node:url';
 
 const RAIZ = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
 const PROHIBIDO = [
@@ -35,7 +35,7 @@ test('sin fuentes de no determinismo en runtime/ ni componentes/', () => {
 test('cada componente con catálogo declara planear y montar', async () => {
   for (const tipo of fs.readdirSync(path.join(RAIZ, 'componentes'))) {
     if (!fs.existsSync(path.join(RAIZ, 'componentes', tipo, 'catalogo.json'))) continue;
-    const m = await import(path.join(RAIZ, 'componentes', tipo, `${tipo}.js`));
+    const m = await import(pathToFileURL(path.join(RAIZ, 'componentes', tipo, `${tipo}.js`)).href);
     assert.equal(typeof m.planear, 'function', `${tipo}.planear`);
     assert.equal(typeof m.montar, 'function', `${tipo}.montar`);
   }

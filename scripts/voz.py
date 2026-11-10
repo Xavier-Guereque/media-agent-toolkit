@@ -301,7 +301,7 @@ def silencios(wav):
     """Intervalos de silencio (silencedetect -40 dB, ≥ 0.12 s)."""
     r = subprocess.run(["ffmpeg", "-nostats", "-hide_banner", "-i", wav, "-af",
                         f"silencedetect=noise={UMBRAL_DB:g}dB:d={PAUSA_MIN}", "-f", "null", "-"],
-                       capture_output=True, text=True)
+                       capture_output=True, text=True, encoding="utf-8", errors="replace")
     ini = [float(x) for x in re.findall(r"silence_start: (-?[\d.]+)", r.stderr)]
     fin = [float(x) for x in re.findall(r"silence_end: (-?[\d.]+)", r.stderr)]
     total = comun.dur(wav)

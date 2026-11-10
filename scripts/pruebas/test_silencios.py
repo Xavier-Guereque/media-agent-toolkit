@@ -59,7 +59,7 @@ def inicios_audio(ruta):
     """Instantes en que arranca el tono (fin de cada silencio) medidos sobre la salida."""
     r = subprocess.run(["ffmpeg", "-nostdin", "-hide_banner", "-nostats", "-i", ruta, "-map", "0:a:0",
                         "-af", "silencedetect=noise=-40dB:d=0.05", "-f", "null", "-"],
-                       capture_output=True, text=True)
+                       capture_output=True, text=True, encoding="utf-8", errors="replace")
     return [float(x) for x in re.findall(r"silence_end:\s*([\d.]+)", r.stderr)]
 
 
@@ -67,7 +67,7 @@ def inicios_video(ruta):
     """Instantes en que el cuadro indicador pasa de negro a blanco (luma media del recorte)."""
     r = subprocess.run(["ffmpeg", "-nostdin", "-hide_banner", "-nostats", "-i", ruta, "-map", "0:v:0", "-vf",
                         "crop=40:40:280:200,signalstats,metadata=print:key=lavfi.signalstats.YAVG:file=-",
-                        "-f", "null", "-"], capture_output=True, text=True)
+                        "-f", "null", "-"], capture_output=True, text=True, encoding="utf-8", errors="replace")
     t, cuadros = None, []
     for linea in r.stdout.splitlines():
         m = re.search(r"pts_time:([\d.]+)", linea)
@@ -200,7 +200,7 @@ class TestRender(unittest.TestCase):
             self.assertEqual(codigo, 0, lineas)
             salida = os.path.join(self.tmp.name, "voz_sin_silencios" + ext)
             r = subprocess.run(["ffprobe", "-v", "error", "-show_entries", "stream=codec_type,codec_name",
-                                "-of", "csv=p=0", salida], capture_output=True, text=True)
+                                "-of", "csv=p=0", salida], capture_output=True, text=True, encoding="utf-8", errors="replace")
             self.assertEqual(r.stdout.strip(), f"{codec},audio")
             with open(os.path.join(self.tmp.name, f"voz_sin_silencios.cortes.json"), encoding="utf-8") as f:
                 doc = json.load(f)

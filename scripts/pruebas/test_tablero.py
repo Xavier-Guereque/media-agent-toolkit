@@ -34,14 +34,14 @@ class TestTablero(unittest.TestCase):
             os.makedirs(rec)
             lineas = [{"ts": 1.0, "etapa": "imagen", "pct": 0, "detalle": "solicitando", "estado": "en_curso"},
                       {"ts": 9.0, "etapa": "imagen", "pct": 100, "detalle": "1 imagen", "estado": "listo"}]
-            with open(os.path.join(rec, "avance.jsonl"), "w") as f:
+            with open(os.path.join(rec, "avance.jsonl"), "w", encoding="utf-8") as f:
                 f.write("\n".join(json.dumps(l) for l in lineas) + "\n")
             with mock.patch.object(tablero, "PROYECTO", tmp):
                 e = tablero.estado()
             self.assertTrue(e["terminado"])
             self.assertEqual((e["etapas"][0]["id"], e["etapas"][0]["pct"], e["etapas"][0]["fin"]), ("imagen", 100.0, 9.0))
             # un estado desconocido (p. ej. "ok") no cierra la etapa: así se detectó el fallo de imagen.py/reemplazar_personaje.py
-            with open(os.path.join(rec, "avance.jsonl"), "a") as f:
+            with open(os.path.join(rec, "avance.jsonl"), "a", encoding="utf-8") as f:
                 f.write(json.dumps({"ts": 10.0, "etapa": "reemplazo", "pct": 100, "detalle": "x", "estado": "ok"}) + "\n")
             with mock.patch.object(tablero, "PROYECTO", tmp):
                 self.assertFalse(tablero.estado()["terminado"])

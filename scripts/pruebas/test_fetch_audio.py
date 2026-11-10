@@ -332,11 +332,11 @@ class PruebaTrazabilidad(Base):
 
     def test_manifest_ilegible_no_se_sobreescribe(self):
         ruta = os.path.join(self.out, "manifest.json")
-        with open(ruta, "w") as f:
+        with open(ruta, "w", encoding="utf-8") as f:
             f.write("{roto")
         with self.assertRaises(fa.ErrorConfig):
             fa.descargar(self.items(), self.out)
-        with open(ruta) as f:
+        with open(ruta, encoding="utf-8") as f:
             self.assertEqual(f.read(), "{roto")
         self.red.paginas = {1: [ov(1)]}
         self.assertEqual(self.cli("whoosh", "--out", self.out)[0], 2)
@@ -491,7 +491,7 @@ class PruebaFreesound(Base):
         self.assertEqual(self.red.llamadas, [])
 
     def test_token_desde_env_del_repo(self):
-        with open(os.path.join(self.out, ".env"), "w") as f:
+        with open(os.path.join(self.out, ".env"), "w", encoding="utf-8") as f:
             f.write('OTRA=1\nFREESOUND_TOKEN="abc123"\n')
         self.assertEqual(fa._token_freesound(), "abc123")
 
@@ -550,11 +550,11 @@ class PruebaCLI(Base):
 
     def test_salida_por_defecto(self):
         with mock.patch.object(fa, "cargar_config", return_value={}):
-            self.assertEqual(fa.salida_por_defecto(), os.path.expanduser("~/Music/media-stock"))
+            self.assertEqual(fa.salida_por_defecto(), os.path.abspath(os.path.expanduser("~/Music/media-stock")))
         with mock.patch.object(fa, "cargar_config", return_value={"audio_cc0": {"salida": "~/stock-cc0"}}):
-            self.assertEqual(fa.salida_por_defecto(), os.path.expanduser("~/stock-cc0"))
+            self.assertEqual(fa.salida_por_defecto(), os.path.abspath(os.path.expanduser("~/stock-cc0")))
         with mock.patch.object(fa, "cargar_config", return_value={"audio_cc0": {"salida": "assets/audio"}}):
-            self.assertEqual(fa.salida_por_defecto(), os.path.join(fa.REPO_ROOT, "assets/audio"))
+            self.assertEqual(fa.salida_por_defecto(), os.path.abspath(os.path.join(fa.REPO_ROOT, "assets/audio")))
 
 
 @unittest.skipUnless(os.environ.get("CC0_ONLINE") == "1", "prueba en línea: exporta CC0_ONLINE=1")

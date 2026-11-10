@@ -29,7 +29,7 @@ def generar(tmp, nombre, lt):
     carpeta = os.path.join(tmp, nombre)
     os.makedirs(carpeta)
     ruta_lt = os.path.join(carpeta, "linea_tiempo.json")
-    with open(ruta_lt, "w") as f:
+    with open(ruta_lt, "w", encoding="utf-8") as f:
         json.dump(lt, f)
     salida = os.path.join(carpeta, "audio", "mezcla.wav")
     return sonido.generar_audio(ruta_lt, salida, imprimir=False), salida
@@ -53,7 +53,7 @@ class TestProcedural(unittest.TestCase):
 
     def test_duracion_exacta_estereo_48k(self):
         r = subprocess.run(["ffprobe", "-v", "error", "-show_entries", "stream=sample_rate,channels,duration_ts",
-                            "-of", "json", self.salida], capture_output=True, text=True)
+                            "-of", "json", self.salida], capture_output=True, text=True, encoding="utf-8", errors="replace")
         s = json.loads(r.stdout)["streams"][0]
         self.assertEqual(int(s["sample_rate"]), SR)
         self.assertEqual(int(s["channels"]), 2)
@@ -130,7 +130,7 @@ class TestPerfiles(unittest.TestCase):
 
     def escribir_lt(self, lt):
         ruta = os.path.join(self.rec, "promo", "linea_tiempo.json")
-        with open(ruta, "w") as f:
+        with open(ruta, "w", encoding="utf-8") as f:
             json.dump(lt, f)
         return ruta
 
@@ -167,7 +167,7 @@ class TestPerfiles(unittest.TestCase):
         self.assertEqual(x["avisos"], [])
         # La música atenuada llega completa al final (sidechaincompress recortaba la cola).
         r = subprocess.run(["ffprobe", "-v", "error", "-show_entries", "stream=duration_ts", "-of", "csv=p=0",
-                            os.path.join(self.rec, "audio", "musica_duck.wav")], capture_output=True, text=True)
+                            os.path.join(self.rec, "audio", "musica_duck.wav")], capture_output=True, text=True, encoding="utf-8", errors="replace")
         self.assertEqual(int(r.stdout.strip()), 30 * SR)
 
     def test_voz_pendiente_sale_2(self):
@@ -248,11 +248,11 @@ class TestPerfiles(unittest.TestCase):
             sonido.generar_audio(ruta_lt, salida, imprimir=False, refrescar_cc0=True)
             self.assertEqual(len(llamadas), 2 * primera)     # --refrescar-cc0: ya
             sel = os.path.join(self.rec, "audio", "cc0", "seleccion.json")
-            with open(sel) as f:
+            with open(sel, encoding="utf-8") as f:
                 datos = json.load(f)
             for v in datos.values():
                 v["ts"] -= 25 * 3600                          # hace 25 h
-            with open(sel, "w") as f:
+            with open(sel, "w", encoding="utf-8") as f:
                 json.dump(datos, f)
             sonido.generar_audio(ruta_lt, salida, imprimir=False)
             self.assertEqual(len(llamadas), 3 * primera)     # vencido: se reintenta

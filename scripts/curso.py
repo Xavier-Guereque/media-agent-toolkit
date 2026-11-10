@@ -908,7 +908,7 @@ def _stills(c, lec, lid):
         png = os.path.join(carpeta, f"{n:03d}.png")
         r = subprocess.run([node, cli, "still", "src/index.ts", "Leccion", png, f"--frame={cuadro}", f"--props={lec.props_json}",
                             f"--public-dir={lec.rec}", "--scale=0.5", "--log=error"], cwd=remotion.dir_motor(),
-                           capture_output=True, text=True)
+                           capture_output=True, text=True, encoding="utf-8", errors="replace")
         if r.returncode:
             print(f"ERROR qa: still de {lid}/{e['id']} falló: {(r.stderr or r.stdout)[-400:]}")
             print("Siguiente: revisa la composición Leccion o repórtalo al usuario.")

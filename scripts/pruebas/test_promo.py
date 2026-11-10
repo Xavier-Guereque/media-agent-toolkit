@@ -53,7 +53,7 @@ if (modo === 'voz') {
 
 def correr(*args, env=None):
     e = dict(os.environ, **(env or {}))
-    r = subprocess.run([sys.executable, PROMO, *args], capture_output=True, text=True, env=e, cwd=REPO)
+    r = subprocess.run([sys.executable, PROMO, *args], capture_output=True, text=True, encoding="utf-8", errors="replace", env=e, cwd=REPO)
     return r.returncode, r.stdout, r.stderr
 
 
@@ -62,7 +62,7 @@ class TestPromo(unittest.TestCase):
         self.tmp = tempfile.TemporaryDirectory()
         self.raiz = self.tmp.name
         self.stub = os.path.join(self.raiz, "motor_stub.mjs")
-        with open(self.stub, "w") as f:
+        with open(self.stub, "w", encoding="utf-8") as f:
             f.write(MOTOR_STUB)
 
     def tearDown(self):
@@ -81,12 +81,12 @@ class TestPromo(unittest.TestCase):
         for rel in ("promo.json", "brief.md", "info.txt", "recursos/promo", "recursos/cuadros",
                     "recursos/render", "recursos/audio"):
             self.assertTrue(os.path.exists(os.path.join(proy, rel)), rel)
-        with open(os.path.join(proy, "brief.md")) as f:
+        with open(os.path.join(proy, "brief.md"), encoding="utf-8") as f:
             brief = f.read()
         for seccion in ("Objetivo", "Público", "Mensaje clave", "Hechos confirmados (con fuente)",
                         "CTA y contacto", "Tono", "Duración/formato", "Música", "Voz en off (sí/no)"):
             self.assertIn(f"## {seccion}", brief)
-        with open(os.path.join(proy, "promo.json")) as f:
+        with open(os.path.join(proy, "promo.json"), encoding="utf-8") as f:
             spec = json.load(f)
         self.assertEqual(spec.get("formato"), "promo_ui")
         if (spec.get("salida") or {}).get("archivo"):
@@ -152,7 +152,7 @@ class TestPromo(unittest.TestCase):
               "escenas": [], "cues": [{"s": "pop", "en": 1.0}],
               "musica": {"bpm": 112, "secciones": [[0, 1.0, "intro"], [1.0, 3.0, "cuerpo"], [3.0, 4.0, "cierre"]]}}
         time.sleep(0.01)                      # la línea de tiempo debe ser más nueva que promo.json
-        with open(os.path.join(rec, "promo", "linea_tiempo.json"), "w") as f:
+        with open(os.path.join(rec, "promo", "linea_tiempo.json"), "w", encoding="utf-8") as f:
             json.dump(lt, f)
         # Video mudo SIN etiquetas de color: final debe agregarlas con h264_metadata.
         comun.run(["ffmpeg", "-y", "-v", "error", "-f", "lavfi", "-i", "testsrc2=s=216x384:r=30:d=4",
@@ -167,7 +167,7 @@ class TestPromo(unittest.TestCase):
         m = comun.ebur128(os.path.join(proy, "prueba-final.mp4"))
         self.assertAlmostEqual(m["I"], -14.0, delta=0.5)
         self.assertLessEqual(m["TP"], -1.0)
-        with open(os.path.join(proy, "info.txt")) as f:
+        with open(os.path.join(proy, "info.txt"), encoding="utf-8") as f:
             info = f.read()
         self.assertIn("### promo final — inicio", info)
         self.assertIn("120 cuadros", info)
@@ -203,7 +203,7 @@ class TestPromo(unittest.TestCase):
               "escenas": [], "cues": [],
               "musica": {"bpm": 112, "secciones": [[0, 1.0, "intro"], [1.0, 5.0, "cuerpo"], [5.0, 6.0, "cierre"]]}}
         time.sleep(0.01)
-        with open(ruta_lt, "w") as f:
+        with open(ruta_lt, "w", encoding="utf-8") as f:
             json.dump(lt, f)
         codigo, out, _ = correr("audio", "prueba-voz", "--raiz", self.raiz)
         self.assertEqual(codigo, 2)
@@ -212,7 +212,7 @@ class TestPromo(unittest.TestCase):
         self.assertEqual(codigo, 0, out)
         self.assertIn("2 líneas (2 nuevas, 0 en caché)", out)
         self.assertIn("promo.py validar", out.strip().splitlines()[-1])
-        with open(os.path.join(rec, "voz", "tiempos.json")) as f:
+        with open(os.path.join(rec, "voz", "tiempos.json"), encoding="utf-8") as f:
             tiempos = json.load(f)
         # Tras `voz` hay que re-validar: audio lo exige.
         codigo, out, _ = correr("audio", "prueba-voz", "--raiz", self.raiz)
@@ -222,7 +222,7 @@ class TestPromo(unittest.TestCase):
             l.update(archivo=t["archivo"], dur=t["dur"])
         lt["voz"]["pendiente"] = False
         time.sleep(0.01)
-        with open(ruta_lt, "w") as f:
+        with open(ruta_lt, "w", encoding="utf-8") as f:
             json.dump(lt, f)
         comun.run(["ffmpeg", "-y", "-v", "error", "-f", "lavfi", "-i", "testsrc2=s=216x384:r=30:d=6",
                    "-c:v", "libx264", "-preset", "ultrafast", "-pix_fmt", "yuv420p",

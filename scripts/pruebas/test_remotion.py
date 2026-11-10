@@ -3,6 +3,7 @@ simulado (REMOTION_MOTOR). Nunca escriben en proyectos/ ni en remotion/src/compo
 """
 import json
 import os
+import pathlib
 import shutil
 import subprocess
 import sys
@@ -69,7 +70,7 @@ class TestRemotion(unittest.TestCase):
         os.makedirs(os.path.join(self.motor_dir, "node_modules", "@remotion", "cli"))
         os.makedirs(os.path.join(self.motor_dir, "node_modules", ".remotion", "chrome-headless-shell"))
         self.stub = os.path.join(self.tmp.name, "motor_stub.mjs")
-        with open(self.stub, "w") as f:
+        with open(self.stub, "w", encoding="utf-8") as f:
             f.write(MOTOR_STUB)
         self.args_json = os.path.join(self.tmp.name, "args.json")
         self.env = {"REMOTION_DIR": self.motor_dir, "REMOTION_MOTOR": self.stub, "STUB_VIDEO": self.video,
@@ -81,7 +82,7 @@ class TestRemotion(unittest.TestCase):
     def correr(self, *args, env=None):
         e = dict(os.environ, **self.env, **(env or {}))
         r = subprocess.run([sys.executable, REMOTION_PY, *args, "--raiz", self.raiz], capture_output=True,
-                           text=True, env=e, cwd=REPO)
+                           text=True, encoding="utf-8", errors="replace", env=e, cwd=REPO)
         return r.returncode, r.stdout, r.stderr
 
     def nuevo(self, slug="prueba-uno", *extra):
@@ -94,7 +95,7 @@ class TestRemotion(unittest.TestCase):
         return os.path.join(self.motor_dir, "src", "composiciones", "proyectos", nombre + ".tsx")
 
     def registro(self):
-        with open(os.path.join(self.motor_dir, "src", "composiciones", "proyectos", "registro.ts")) as f:
+        with open(os.path.join(self.motor_dir, "src", "composiciones", "proyectos", "registro.ts"), encoding="utf-8") as f:
             return f.read()
 
     # ------------------------------------------------------------ nuevo
@@ -103,12 +104,12 @@ class TestRemotion(unittest.TestCase):
         self.assertRegex(os.path.basename(proy), r"^prueba-uno_\d{8}$")
         for rel in ("remotion.json", "brief.md", "info.txt", "recursos/remotion"):
             self.assertTrue(os.path.exists(os.path.join(proy, rel)), rel)
-        with open(os.path.join(proy, "remotion.json")) as f:
+        with open(os.path.join(proy, "remotion.json"), encoding="utf-8") as f:
             spec = json.load(f)
         self.assertEqual(spec["composicion"], "PruebaUno")
         self.assertEqual((spec["version"], spec["salida"], spec["orientacion"], spec["duracion"]), (1, "prueba-uno.mp4", "vertical", 3.0))
         self.assertEqual(set(spec["props"]), set(remotion.PROPS_EJEMPLO))
-        with open(self.tsx("PruebaUno")) as f:
+        with open(self.tsx("PruebaUno"), encoding="utf-8") as f:
             tsx = f.read()
         self.assertIn("export const Composicion", tsx)
         self.assertIn("export const meta", tsx)
@@ -136,7 +137,7 @@ class TestRemotion(unittest.TestCase):
         proy = self.nuevo()
         spec = {"composicion": "NoExiste", "orientacion": "cuadrado", "duracion": 0, "fps": 30,
                 "props": {"clip": "x.mp4", "lista": [{"voz": "v.wav"}]}, "salida": "a/b.mp4"}
-        with open(os.path.join(proy, "remotion.json"), "w") as f:
+        with open(os.path.join(proy, "remotion.json"), "w", encoding="utf-8") as f:
             json.dump(spec, f)
         codigo, out, _ = self.correr("validar", "prueba-uno")
         self.assertEqual(codigo, 2, out)
@@ -152,7 +153,7 @@ class TestRemotion(unittest.TestCase):
         open(os.path.join(proy, "recursos", "voz.wav"), "wb").close()
         spec = {"version": 1, "composicion": "PruebaUno", "orientacion": "horizontal", "duracion": 2.5, "fps": 24,
                 "props": {"voz": "voz.wav", "titulo": "Hola"}}
-        with open(os.path.join(proy, "remotion.json"), "w") as f:
+        with open(os.path.join(proy, "remotion.json"), "w", encoding="utf-8") as f:
             json.dump(spec, f)
         codigo, out, _ = self.correr("validar", "prueba-uno")
         self.assertEqual(codigo, 0, out)
@@ -171,7 +172,7 @@ class TestRemotion(unittest.TestCase):
 
     def test_validar_json_roto_y_proyecto_inexistente(self):
         proy = self.nuevo()
-        with open(os.path.join(proy, "remotion.json"), "w") as f:
+        with open(os.path.join(proy, "remotion.json"), "w", encoding="utf-8") as f:
             f.write("{esto no es json")
         codigo, out, _ = self.correr("validar", "prueba-uno")
         self.assertEqual(codigo, 2)
@@ -183,7 +184,7 @@ class TestRemotion(unittest.TestCase):
         proy = self.nuevo()
         codigo, out, err = self.correr("render", "prueba-uno", env={"STUB_MODO": "ok"})
         self.assertEqual(codigo, 0, out + err)
-        with open(self.args_json) as f:
+        with open(self.args_json, encoding="utf-8") as f:
             argv = json.load(f)
         self.assertEqual(argv[:3], ["render", "--composicion", "PruebaUno"])
         self.assertTrue(argv[argv.index("--props") + 1].endswith(os.path.join("recursos", "remotion", "props.json")))
@@ -191,7 +192,7 @@ class TestRemotion(unittest.TestCase):
         self.assertEqual(argv[argv.index("--crf") + 1], "17")
         self.assertEqual(argv[argv.index("--x264-preset") + 1], "slow")
         self.assertNotIn("--borrador", argv)
-        with open(os.path.join(proy, "recursos", "remotion", "props.json")) as f:
+        with open(os.path.join(proy, "recursos", "remotion", "props.json"), encoding="utf-8") as f:
             props = json.load(f)
         self.assertEqual((props["duracion"], props["ancho"], props["alto"], props["fps"]), (3.0, 1080, 1920, 30))
         self.assertEqual(props["titulo"], "Prueba uno")
@@ -209,13 +210,13 @@ class TestRemotion(unittest.TestCase):
         self.assertIn("-14.0 LUFS", out.replace("−", "-"))
         self.assertTrue(lineas[-1].startswith("Siguiente:"))
         self.assertNotIn("log del motor", out + err)
-        with open(os.path.join(proy, "recursos", "remotion", "render.json")) as f:
+        with open(os.path.join(proy, "recursos", "remotion", "render.json"), encoding="utf-8") as f:
             self.assertEqual(json.load(f)["codigo"], 0)
-        with open(os.path.join(proy, "recursos", "avance.jsonl")) as f:
+        with open(os.path.join(proy, "recursos", "avance.jsonl"), encoding="utf-8") as f:
             av = [json.loads(l) for l in f]
         self.assertEqual(av[-1]["etapa"], "render")
         self.assertEqual((av[-1]["pct"], av[-1]["estado"]), (100, "listo"))
-        with open(os.path.join(proy, "info.txt")) as f:
+        with open(os.path.join(proy, "info.txt"), encoding="utf-8") as f:
             self.assertIn(remotion.MARCA_INI, f.read())
         _, _, err = self.correr("render", "prueba-uno", "--verbose", env={"STUB_MODO": "ok"})
         self.assertIn("log del motor", err)
@@ -224,7 +225,7 @@ class TestRemotion(unittest.TestCase):
         proy = self.nuevo()
         codigo, out, err = self.correr("render", "prueba-uno", "--borrador", "--workers", "50%", env={"STUB_MODO": "ok"})
         self.assertEqual(codigo, 0, out + err)
-        with open(self.args_json) as f:
+        with open(self.args_json, encoding="utf-8") as f:
             argv = json.load(f)
         self.assertIn("--borrador", argv)
         self.assertEqual(argv[argv.index("--concurrencia") + 1], "50%")
@@ -263,20 +264,21 @@ class TestRemotion(unittest.TestCase):
                 self.assertIn(esperado, argv)
             self.assertEqual(popen.call_args.kwargs.get("cwd"), self.motor_dir)
             self.assertIn("http://localhost:3123", so.getvalue())
-            with open(os.path.join(proy, "recursos", "remotion", "estudio.pid")) as f:
+            with open(os.path.join(proy, "recursos", "remotion", "estudio.pid"), encoding="utf-8") as f:
                 self.assertEqual(f.readline().strip(), "4242")
             a = remotion.construir_parser().parse_args(["estudio", proy, "--raiz", self.raiz, "--detener"])
-            with mock.patch.object(os, "kill"), mock.patch.object(os, "killpg") as killpg, \
+            with mock.patch.object(comun, "pid_vivo", return_value=True), \
+                 mock.patch.object(comun, "terminar_arbol") as terminar, \
                  mock.patch.object(sys, "stdout", new_callable=__import__("io").StringIO):
                 self.assertEqual(remotion.etapa_estudio(a, remotion.Proyecto(proy)), 0)
-            killpg.assert_called_once()
+            terminar.assert_called_once_with(4242)
             self.assertFalse(os.path.exists(os.path.join(proy, "recursos", "remotion", "estudio.pid")))
 
     def test_generar_registro_es_determinista(self):
         with mock.patch.dict(os.environ, self.env):
             d = os.path.join(self.motor_dir, "src", "composiciones", "proyectos")
             for n in ("Beta.tsx", "Alfa.tsx", "malo-nombre.tsx", "notas.txt"):
-                open(os.path.join(d, n), "w").close()
+                open(os.path.join(d, n), "w", encoding="utf-8").close()
             ids, malos = remotion.generar_registro()
             self.assertEqual((ids, malos), (["Alfa", "Beta"], ["malo-nombre"]))
             ruta = os.path.join(d, "registro.ts")
@@ -295,8 +297,8 @@ class TestRemotion(unittest.TestCase):
             texto_py = self.registro()
         motor = os.path.join(MOTOR_REAL, "motor.mjs")
         r = subprocess.run(["node", "--input-type=module", "-e",
-                            f"import('file://{motor}').then(m => process.stdout.write(m.REGISTRO_VACIO))"],
-                           capture_output=True, text=True, cwd=REPO)
+                            f"import('{pathlib.Path(motor).as_uri()}').then(m => process.stdout.write(m.REGISTRO_VACIO))"],
+                           capture_output=True, text=True, encoding="utf-8", errors="replace", cwd=REPO)
         self.assertEqual(r.returncode, 0, r.stderr)
         self.assertEqual(r.stdout, texto_py)
 

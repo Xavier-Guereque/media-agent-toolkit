@@ -36,7 +36,7 @@ def fondo_de(img):
 
 def dims(video):
     out = subprocess.run(["ffprobe", "-v", "error", "-select_streams", "v:0", "-show_entries", "stream=width,height,r_frame_rate",
-                          "-of", "csv=p=0", video], capture_output=True, text=True).stdout.strip().split(",")
+                          "-of", "csv=p=0", video], capture_output=True, text=True, encoding="utf-8", errors="replace").stdout.strip().split(",")
     num, den = out[2].split("/"); return int(out[0]), int(out[1]), float(num) / float(den)
 
 
@@ -98,7 +98,7 @@ def cmd_rastrear(a):
                       "op": round(op, 3), "margen": int(cols.min() / S) if len(cols) else W})
         if n % 30 == 0:
             comun.avance("rastreo", min(99.0, 100 * n / total), f"cuadro {n}/{total}")
-    with open(a.salida, "w") as f:
+    with open(a.salida, "w", encoding="utf-8") as f:
         json.dump({"escala": escala, "bbox_asset": [bx0, by0, bx1, by1], "plantilla": [int(tw / S), int(th / S)],
                    "fondo": [int(v) for v in bg], "video": [W, H, fps], "cuadros": filas}, f)
     comun.avance("rastreo", 100, f"{len(filas)} cuadros → {os.path.basename(a.salida)}", estado="listo")
@@ -118,7 +118,7 @@ def _nuevo(ruta, escala):
 
 
 def cmd_solape(a):
-    d = json.load(open(a.rastreo)); filas = d["cuadros"]; W, H, fps = d["video"]; bg = np.array(d["fondo"], np.int16); tw, th = d["plantilla"]
+    d = json.load(open(a.rastreo, encoding="utf-8")); filas = d["cuadros"]; W, H, fps = d["video"]; bg = np.array(d["fondo"], np.int16); tw, th = d["plantilla"]
     pres = [r for r in filas if r["score"] > a.umbral]; xm = collections.Counter(r["x"] for r in pres).most_common(1)[0][0]
     ym = collections.Counter(r["y"] for r in pres).most_common(1)[0][0]; base = ym + th; S = 0.5
     nv = cv2.imread(a.nuevo, cv2.IMREAD_UNCHANGED); cands = {}
@@ -141,7 +141,7 @@ def cmd_solape(a):
 
 
 def cmd_reemplazar(a):
-    d = json.load(open(a.rastreo)); filas = d["cuadros"]; W, H, fps = d["video"]; bg = np.array(d["fondo"], np.int16)
+    d = json.load(open(a.rastreo, encoding="utf-8")); filas = d["cuadros"]; W, H, fps = d["video"]; bg = np.array(d["fondo"], np.int16)
     bx0, by0, bx1, by1 = d["bbox_asset"]; esc_v = d["escala"]
     v = cv2.imread(a.viejo); Dv = contenido(v, bg)[by0:by1 + 1, bx0:bx1 + 1]
     mv = cv2.resize((Dv > 20).astype(np.uint8), None, fx=esc_v, fy=esc_v, interpolation=cv2.INTER_NEAREST)

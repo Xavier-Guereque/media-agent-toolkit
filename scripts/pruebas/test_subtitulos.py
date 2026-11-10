@@ -294,6 +294,7 @@ class TestMain(unittest.TestCase):
         x, y = cuadro(a), cuadro(b)
         return sum(1 for p, q in zip(x, y) if abs(p - q) > 40)
 
+    @unittest.skipUnless(__import__("importlib").util.find_spec("numpy"), "transcribir_whisper usa numpy (viene con faster-whisper)")
     def test_whisper_stub_usa_marcas_por_palabra(self):
         palabras = [(0.55, 0.9, "Hola,"), (1.0, 1.6, "bienvenidos"), (1.7, 2.4, "todos."),
                     (4.8, 5.5, "Segunda"), (5.6, 6.3, "parte.")]

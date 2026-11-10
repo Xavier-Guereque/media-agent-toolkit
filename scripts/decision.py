@@ -39,7 +39,7 @@ def _key(repo="."):
         return v
     env = os.path.join(repo, ".env")
     if os.path.exists(env):
-        with open(env) as f:
+        with open(env, encoding="utf-8") as f:
             for l in f:
                 if l.startswith("OPENROUTER_API_KEY="):
                     return l.split("=", 1)[1].strip()
@@ -69,7 +69,7 @@ def decidir(state, questions, repo=".", modelo=MODELO, log=None):
         raise SystemExit("Decisions API: " + e.read().decode()[:600])
     if log:
         os.makedirs(os.path.dirname(log), exist_ok=True)
-        with open(log, "a") as f:
+        with open(log, "a", encoding="utf-8") as f:
             f.write(json.dumps({"id": res.get("id"), "modelo": modelo, "tarea": "decisiones",
                                 "ts": datetime.datetime.now().isoformat(),
                                 "usage": res.get("usage")}) + "\n")
@@ -99,8 +99,8 @@ def main():
     ap.add_argument("--repo", default=".", help="raíz del repo (para leer .env)")
     ap.add_argument("--log", help="costos.jsonl donde registrar la llamada")
     a = ap.parse_args()
-    state = json.load(open(a.state)) if a.state and a.state != "-" else json.load(sys.stdin)
-    q = json.load(open(a.questions))
+    state = json.load(open(a.state, encoding="utf-8")) if a.state and a.state != "-" else json.load(sys.stdin)
+    q = json.load(open(a.questions, encoding="utf-8"))
     res = decidir(state, q, a.repo, log=a.log)
     print(json.dumps(res, indent=2, ensure_ascii=False))
     print("\n-- resumen --")

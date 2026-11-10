@@ -34,7 +34,6 @@ import datetime
 import json
 import os
 import re
-import signal
 import subprocess
 import sys
 import time
@@ -271,7 +270,7 @@ def validar_spec(spec, p, registrados, rem, res, formatos):
                         f"Crea {promo.ruta_cmd(os.path.join(dir_proyectos_tsx(), comp + '.tsx'))} (exporta Composicion y meta). "
                         f"Registradas: {', '.join(registrados) or 'ninguna'}."))
     salida = spec.get("salida")
-    if salida is not None and (not isinstance(salida, str) or os.sep in salida
+    if salida is not None and (not isinstance(salida, str) or "/" in salida or "\\" in salida
                                or salida.rsplit(".", 1)[-1].lower() not in formatos):
         e.append(_issue("E-REMOTION-SALIDA", "salida", f"{salida!r}",
                         f"Nombre de archivo sin carpetas con extensión {'/'.join(formatos)} (p. ej. {p.slug}.mp4)."))
@@ -452,7 +451,7 @@ def sondear(ruta):
     r = subprocess.run(["ffprobe", "-v", "error", "-count_packets", "-show_entries",
                         "stream=codec_type,codec_name,nb_read_packets,duration,pix_fmt,width,height,r_frame_rate,"
                         "color_primaries,color_transfer,color_space:format=duration", "-of", "json", ruta],
-                       capture_output=True, text=True)
+                       capture_output=True, text=True, encoding="utf-8", errors="replace")
     d = json.loads(r.stdout or "{}")
     v = next((s for s in d.get("streams", []) if s.get("codec_type") == "video"), {})
     au = next((s for s in d.get("streams", []) if s.get("codec_type") == "audio"), None)
@@ -575,20 +574,16 @@ def _pid_vivo(ruta):
     try:
         with open(ruta, encoding="utf-8") as f:
             pid = int(f.readline().strip())
-        os.kill(pid, 0)
-        return pid
     except (OSError, ValueError):
         return None
+    return pid if comun.pid_vivo(pid) else None
 
 
 def etapa_estudio(a, p):
     pid = _pid_vivo(p.estudio_pid)
     if getattr(a, "detener", False):
         if pid:
-            try:
-                os.killpg(pid, signal.SIGTERM)
-            except OSError:
-                os.kill(pid, signal.SIGTERM)
+            comun.terminar_arbol(pid)
             print(f"estudio detenido (pid {pid}).")
         else:
             print("estudio: no había ninguno corriendo.")

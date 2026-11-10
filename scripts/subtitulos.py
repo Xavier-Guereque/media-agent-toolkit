@@ -656,7 +656,7 @@ def leer_srt(texto):
 def version_libass():
     """Versión de libass del FFmpeg instalado (int 0xMMmmpp00) o None si no tiene libass."""
     r = subprocess.run(["ffmpeg", "-nostdin", "-hide_banner", "-f", "lavfi", "-i", "color=s=16x16:d=0.04",
-                        "-vf", "subtitles=filename=/dev/null", "-f", "null", "-"], capture_output=True, text=True)
+                        "-vf", "subtitles=filename=/dev/null", "-f", "null", "-"], capture_output=True, text=True, encoding="utf-8", errors="replace")
     m = re.search(r"libass API version: 0x([0-9a-fA-F]+)", r.stderr)
     if m:
         return int(m.group(1), 16)

@@ -43,7 +43,7 @@ def bloque_skill():
 
 
 def correr(args, env):
-    r = subprocess.run([sys.executable, PROMO] + args, capture_output=True, text=True, env=env)
+    r = subprocess.run([sys.executable, PROMO] + args, capture_output=True, text=True, encoding="utf-8", errors="replace", env=env)
     return r.returncode, (r.stdout + r.stderr).strip()
 
 
@@ -99,7 +99,7 @@ def main():
     rec = os.path.join(pdir, "recursos")
     _, ayuda = correr(["ayuda"], env)
     oro = open(os.path.join(ejemplos, ejemplo, "promo.json"), encoding="utf-8").read()
-    esquema = json.load(open(os.path.join(REPO, "promo", "esquema", "promo.schema.json"))) if a.esquema else None
+    esquema = json.load(open(os.path.join(REPO, "promo", "esquema", "promo.schema.json"), encoding="utf-8")) if a.esquema else None
 
     sistema = ("Eres el orquestador del media-agent-toolkit. Tu única tarea es escribir el archivo promo.json "
                "del video. Sigue estas instrucciones del toolkit:\n\n" + bloque_skill() +
