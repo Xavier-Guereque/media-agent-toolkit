@@ -82,8 +82,12 @@ export async function abrir({ lt, proyecto, escala = 1, registrar = () => {}, si
     if (!url.startsWith(ORIGEN + '/')) return ruta.abort();
     const f = resolver(url, { proyecto, tema: lt.tema_nombre, sinPrivado });
     if (!f || !fs.existsSync(f) || !fs.statSync(f).isFile()) {
-      // Los CSS de componente son opcionales; el resto se reporta.
-      if (!url.endsWith('.css') && !url.includes('/tema/logo')) faltantes.push(url.slice(ORIGEN.length));
+      // Los CSS de componente y el logo del tema (privado/, gitignored) son opcionales: se responden
+      // 204 vacío, no 404, porque Chrome registra todo 404 como error de consola y eso se reportaría
+      // como E-RUNTIME en cualquier copia sin privado/. El runtime trata el cuerpo vacío como "no hay"
+      // (texto_o_null → '' → limpiarSvg → null → wordmark tipográfico). El resto sí se reporta.
+      if (url.endsWith('.css') || url.includes('/tema/logo')) return ruta.fulfill({ status: 204, body: '' });
+      faltantes.push(url.slice(ORIGEN.length));
       return ruta.fulfill({ status: 404, body: '' });
     }
     return ruta.fulfill({ status: 200, body: fs.readFileSync(f), headers: { 'content-type': TIPOS[path.extname(f)] || 'application/octet-stream' } });
