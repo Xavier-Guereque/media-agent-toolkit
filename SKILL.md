@@ -494,10 +494,16 @@ estado: activo
 - **Cuestionario (una ronda, AGENT §2):** tema y fuente de los hechos; orientación (9:16 Short o 16:9); duración (Short ≤ 60 s
   ≈ 8–12 tomas de 4–7 s); estilo (tinta + lápiz por defecto, o la referencia del usuario: **propia**, nunca fotogramas de
   otro canal); cuántas tomas «héroe» con IA de video (0–3) y presupuesto; voz (`voz_default`) y música (`ambiental`).
+  Sin respuesta sobre el estilo → **estilo de la casa** (sepia + un solo acento bermellón, hoja canónica).
 - **Qué escribes tú:** `proyectos/<slug>_<DDMMAAAA>/ilustrado.json` (contrato en `[[Motor-Ilustrado]]`): `estilo.prompt`
-  (≥ 12 palabras: trazo, relleno, papel, paleta, época) y por toma `tts`, `imagen` (encuadre, sujeto y acción **sin texto**),
-  `movimiento` (`imagen` | `parallax` + `capas.sujeto` | `clip` | `video_ia` + `video.prompt` solo de movimiento), `camara`
-  y `titulo` (≤ 34 caracteres). Los hechos se verifican antes de narrar: los modelos inventan vestuario y objetos de época.
+  solo si el usuario pide otro look (≥ 12 palabras: trazo, relleno, papel, paleta, época; sin él va el estilo de la casa) y
+  por toma `tts`, `imagen` (encuadre, sujeto y acción **sin texto**), `movimiento` (`imagen` | `parallax` + `capas.sujeto` |
+  `clip` | `video_ia` + `video.prompt` solo de movimiento), `camara` y `titulo` (≤ 34 caracteres). Los hechos se verifican
+  antes de narrar: los modelos inventan vestuario y objetos de época.
+- **Firma de la casa (úsala siempre, con medida):** `entrada: {"tipo": "entintado"}` en la toma 1 y como mucho en un cambio
+  de capítulo (≤ 25 % de las tomas; solo `imagen`/`video_ia`); `transicion: "mancha"` en los cambios de idea (el resto,
+  fundido); 1 anotación (`circulo`, `subrayado`, `flecha`) cada 2–3 tomas sobre el dato que la voz dice, con `en` = esa
+  palabra del `tts`; *una o dos palabras* del titular entre asteriscos (color de acento); `"cierre": true` (sello).
 - **Comandos:** `python3 scripts/ilustrar.py nuevo <slug> [--orientacion vertical]` → `validar` (lints + costo estimado) →
   `estilo` (revisar `recursos/estilo/ref_1.png`) → `voz` → `imagenes` → `capas` → `hoja` (**revisar con los ojos antes de
   pagar video**; `--rehacer t3,t5` repite tomas) → `clips [--confirmar]` → `render [--borrador]`. `todo` encadena todo.

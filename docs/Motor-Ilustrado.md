@@ -57,6 +57,26 @@ proyectos/<slug>_<DDMMAAAA>/
 - `musica`: `"ambiental"` (cama documental procedural de `componer.cama_ambiental`, 0 USD), un archivo de `recursos/`
   (CC0 o propio, renivelado a −18 LUFS) o `null`. La mezcla (voz −15 LUFS, ducking) la hace `componer.mezclar`.
 - `voz`: igual que en cursos (`voz.resolver_voz`); vacío = `config.json > voz_default`.
+- `estilo`: sin `prompt` usa el de la casa; `tinta`, `papel` y `acento` heredan de `ilustrado.estilo_casa` si faltan.
+- Firma opcional por toma: `entrada`, `transicion`, `anotaciones`; por pieza: `cierre` (ver arriba). Sin estos campos el
+  resultado es el de la v1.11.
+
+## Firma de la casa (v1.12)
+
+Lo que hace reconocible un video del toolkit aunque se vea en silencio y en miniatura. Todo local y determinista, 0 USD.
+
+| Pieza | Campo | Qué se ve | Cómo se hace |
+|---|---|---|---|
+| **Estilo de la casa** | sin `estilo.prompt` | Tinta carbón, lavados sepia, lápiz, papel crema y **un solo acento bermellón** sobre el protagonista de cada toma | `config.json > ilustrado.estilo_casa` (prompt, colores) + hoja canónica `assets/imagenes/ilustrado/hoja_casa.jpg` que `estilo` copia como referencia (misma marca en todos los videos) |
+| **Entintado** | `entrada: {"tipo": "entintado", "dur": 1.5}` | La ilustración se dibuja (tinta en barrido con ruido) y luego se pinta (color que se expande desde el centro como acuarela) | `scripts/entintado.py`: tinta extraída de la **misma** imagen (sombrero negro morfológico + negros profundos), mapas de orden ecualizados, pasos a 12 fps → MP4 corto; su último cuadro es la ilustración. En `video_ia` la ilustración queda quieta y el clip entra encima en 6 cuadros |
+| **Mancha** | `transicion: "mancha"` (o `{"tipo": "mancha", "x": .5, "y": .4}`) | Gota de tinta que cae, se expande con borde irregular y gotas satélite, y deja ver la toma nueva | `clip-path: path()` calculado por cuadro (3 armónicos de radio + gotas), 0.7 s (`ilustrado.mancha`) |
+| **Anotaciones** | `anotaciones: [{"tipo": "circulo|subrayado|flecha", "x", "y", "w", "h", "desde", "en": "palabra"}]` | Círculo que no cierra, subrayado con remate o flecha curva, en el color de acento, dibujados «a doses» cuando la voz dice la palabra | `stroke-dashoffset` sobre trazos con temblor determinista, dentro de la cámara (siguen a la imagen) |
+| **Acento en titulares** | `"titulo": {"texto": "Solo *5 segundos*"}` | Las palabras entre asteriscos van en acento | `TituloCinetico` |
+| **Sello** | `"cierre": true` o `{"texto": "…", "dur": 1.8}` | Sello de goma que cae y golpea al final, con textura | 1.8 s extra tras la voz; texto/logo de `ilustrado.sello` (base: «FIN»; el canal pone el suyo en `config.local.json`, el logo en `privado/`) |
+| **Sonido de firma** | automático | Rasgueo de lápiz mientras se entinta o se anota; golpe del sello | `componer.sfx_lapiz` / `sfx_sello` (ruido filtrado con trazos, grave amortiguado), mezclados bajo la voz |
+
+Medida: el entintado cansa a partir de la tercera vez (`validar` avisa si pasa del 25 % de las tomas); la mancha va en los
+cambios de idea, no en cada corte; una anotación cada 2–3 tomas. Con todo, el render de 54 s tardó lo mismo que sin firma.
 
 ## Los cuatro niveles de movimiento
 
@@ -74,8 +94,9 @@ Todas las tomas comparten el **hervor** del trazo (desplazamiento con ruido que 
 
 - **validar** — lints sin LLM (estilo ≥ 12 palabras, sujeto en parallax, prompt de movimiento, texto pedido dentro de la
   imagen → aviso, titular > 34 caracteres → aviso) y costo estimado con precios leídos del catálogo de OpenRouter.
-- **estilo** — si `estilo.referencias` está vacío, genera `recursos/estilo/ref_1.png` con `estilo.muestra`. Esa imagen
-  viaja como referencia en **todas** las llamadas: es lo que da consistencia entre tomas. Revisarla antes de seguir.
+- **estilo** — sin `estilo.prompt` copia la hoja canónica de la casa a `recursos/estilo/casa.jpg` (0 USD). Con prompt
+  propio y sin `referencias`, genera `recursos/estilo/ref_1.png` con `estilo.muestra`. Esa imagen viaja como referencia en
+  **todas** las llamadas: es lo que da consistencia entre tomas. Revisarla antes de seguir.
 - **voz** — `narrar.narrar` por toma (caché por huella; `tiempos.json` con palabras absolutas). La duración de cada toma
   sale de la voz medida, nunca del guion.
 - **imagenes** — una ilustración por toma con `modelos.imagen_ilustrado` + hoja de estilo + regla «sin texto». Las
@@ -119,7 +140,8 @@ Ver [[Lecciones-2026-11-10-estilo-ilustrado]]. Imágenes ~0.04 USD (Nano Banana 
 ## Límites conocidos
 
 - La hoja de estilo **transmite su composición**: si deja papel vacío arriba, las escenas lo heredan aunque el prompt pida
-  «full-bleed». Pedir la hoja ya a sangre completa (o aprovechar el hueco para los titulares en 9:16).
+  «full-bleed». Lo que funcionó (hoja de la casa, 2026-11-11): segunda llamada con la primera como referencia y el prompt
+  describiendo **qué hay en el borde superior** («the top of the frame shows the stone vault…; NO blank paper area»).
 - `parallax` exige nombrar **solo** el sujeto («the man only, not the workbench»): si el sujeto incluye muebles que también
   quedan en el fondo, se ven duplicados al moverse.
 - Texto dentro de las imágenes: los modelos garabatean «escritura» en papeles; si molesta, pedirlo en blanco en la escena.

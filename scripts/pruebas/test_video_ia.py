@@ -108,9 +108,9 @@ class PruebaValidarIlustrado(unittest.TestCase):
         self.assertTrue(any("imagen" in x for x in w) and any("titulo" in x for x in w))
 
     def test_estimacion(self):
-        ui, uv, n, sv = ilustrar.estimar(self.spec(), {**ilustrar.CONFIG_DEF, "video_resolucion": "720p"},
+        ui, uv, n, sv = ilustrar.estimar(self.spec(), {**ilustrar.config()[1], "video_resolucion": "720p"},
                                          {"bytedance/seedance-1-5-pro": SEEDANCE})
-        self.assertEqual(n, 1 + 1 + 3 + 1)        # hoja de estilo + imagen + parallax (1 + 2 capas) + video_ia
+        self.assertEqual(n, 0 + 1 + 3 + 1)        # hoja canónica de la casa (0) + imagen + parallax (1 + 2 capas) + video_ia
         self.assertEqual(sv, 5)
 
 

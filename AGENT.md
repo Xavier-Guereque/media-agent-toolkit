@@ -4,6 +4,7 @@ fecha_modificacion: 2026-11-09
 estado: activo
 ---
 
+<!-- v1.12.0: firma de la casa en el motor ilustrado — estilo_casa (sepia + un acento, hoja canónica en assets/imagenes/ilustrado), entrada «entintado» (scripts/entintado.py), transición «mancha», anotaciones a mano, *acento* en titulares, sello de cierre y SFX procedurales de lápiz/sello; bitácora en docs/Lecciones-2026-11-11-firma-ilustrada -->
 <!-- v1.11.0: explicador-ilustrado (scripts/ilustrar.py + composición BASE Ilustrado: hoja de estilo, imagen/parallax/clip/video_ia, titular cinético, hervor 12 fps, papel) y animar-imagen (scripts/video_ia.py: imagen a video por OpenRouter /videos, precios del catálogo, topes); modelos.video*/imagen_ilustrado y config ilustrado; Blender opcional; investigación en docs/Investigacion-2026-11-10-estilo-ilustrado -->
 <!-- v1.10.0: compatibilidad con Windows 11 (§3b): -/filter_complex en lugar de -filter_complex_script (eliminado en FFmpeg 8+), comun.pid_vivo/terminar_arbol/python_de_venv, UTF-8 en open() y subprocess, fuente de pantalla.py por plataforma, candado msvcrt en fetch_audio.py -->
 <!-- v1.9.0: piezas comunes promovidas a la base: scripts/componer.py (props, mezcla con ducking, specs por orientación), scripts/lienzo.py (lienzos PIL), scripts/curso_spec.py (constructores de curso.json), créditos en commons.py, y en Remotion componentes/Karaoke+Texto y lib/movimiento|fuentes|karaoke; karaoke ya no desaparece en las pausas; remotion.licencia pasa a config.local.json -->
@@ -136,6 +137,8 @@ El toolkit se escribió en macOS, pero corre en Windows 11 (verificado 2026-11-1
   movimiento por toma del más barato al más caro (`imagen` cámara, `parallax` capas, `clip` propio/Blender, `video_ia`
   solo en tomas héroe) → composición base `Ilustrado` de Remotion (titular cinético, hervor a 12 fps, papel). Revisar
   `hoja` antes de `clips`; `clips` se niega a pasar del tope sin `--confirmar` (confirmar el gasto con el usuario).
+  **Firma de la casa** (0 USD, usarla siempre con medida): estilo de la casa si el usuario no pide otro, `entintado` en la
+  apertura, `mancha` en cambios de idea, anotaciones a mano sincronizadas con la voz, *acento* en el titular y sello final.
 - **Animar una imagen fija / clip corto de IA (imagen a video):** `python3 scripts/video_ia.py modelos|estimar|generar|comparar`
   (skill `animar-imagen`). Misma `OPENROUTER_API_KEY`; precios leídos de `/videos/models` en cada llamada. El video en
   OpenRouter no admite Zero Data Retention: nada de fotos de personas sin permiso ni material de `muestras/`.
@@ -242,7 +245,7 @@ Cambiar un ID aquí cambia el comportamiento de todo el toolkit sin tocar docume
 
 ### `ilustrado` (motor ilustrado y `video_ia.py`)
 
-- `usd_imagen` (estimación por imagen), `tope_usd_por_pieza` (clips sin `--confirmar`), `tope_usd_por_llamada` (`video_ia.py generar`), `video_resolucion` / `video_borrador`, `video_audio` (false: la voz la pone el toolkit), `sondeo_s`, `espera_max_s`, `textura`, `hervor`, `fps_animacion`, `fundido`. Detalle en `[[Motor-Ilustrado]]`.
+- `usd_imagen` (estimación por imagen), `tope_usd_por_pieza` (clips sin `--confirmar`), `tope_usd_por_llamada` (`video_ia.py generar`), `video_resolucion` / `video_borrador`, `video_audio` (false: la voz la pone el toolkit), `sondeo_s`, `espera_max_s`, `textura`, `hervor`, `fps_animacion`, `fundido`, `mancha` (s de la transición), `entintado` (s por defecto), `cierre` (s del sello), `estilo_casa` (prompt, muestra, hoja canónica, tinta, papel, acento) y `sello` (texto/imagen; el canal los cambia en `config.local.json`). Detalle en `[[Motor-Ilustrado]]`.
 - `openrouter.endpoints.video` / `video_modelos`: `/videos` y `/videos/models`.
 
 ### `remotion` (motor opcional de composiciones libres)

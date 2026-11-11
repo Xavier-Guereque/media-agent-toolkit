@@ -1,6 +1,6 @@
 {
-  "version": "1.11.0",
-  "construccion": "10112026",
+  "version": "1.12.0",
+  "construccion": "11112026",
   "actualizacion": {
     "auto_pull": false
   },
@@ -352,7 +352,19 @@
     "hervor": 2.2,
     "fps_animacion": 12,
     "fundido": 0.25,
-    "nota": "motor ilustrado (scripts/ilustrar.py) y video_ia.py; detalle en docs/Motor-Ilustrado.md"
+    "mancha": 0.7,
+    "entintado": 1.5,
+    "cierre": 1.8,
+    "estilo_casa": {
+      "prompt": "Hand-drawn editorial illustration: confident charcoal ink linework with a slight hand wobble, warm sepia and cream washes with soft colored-pencil hatching, almost monochrome, cream paper grain showing through; a single vermilion red accent (#c8452d) used only on the main subject of each scene and nowhere else; simple readable shapes, gentle 3/4 perspective.",
+      "muestra": "a lighthouse keeper climbing the spiral stairs of a stone lighthouse at dusk, holding a lantern",
+      "hoja": "assets/imagenes/ilustrado/hoja_casa.jpg",
+      "tinta": "#26262b",
+      "papel": "#f3ead6",
+      "acento": "#c8452d"
+    },
+    "sello": {"texto": "FIN", "imagen": null},
+    "nota": "motor ilustrado (scripts/ilustrar.py) y video_ia.py; detalle en docs/Motor-Ilustrado.md. estilo_casa y sello se personalizan en config.local.json (logo del canal en privado/)"
   },
   "voz_default": {
     "proveedor": "speech",

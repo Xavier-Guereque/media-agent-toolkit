@@ -21,6 +21,15 @@ Tres niveles de movimiento por toma (del más barato al más caro), campo `movim
   video_ia → imagen a video por OpenRouter (`config.json > modelos.video`, ~0.03 USD/s a 720p): solo tomas «héroe»
 Todas comparten el hervor del trazo a 12 fps y la textura de papel, que unifican el look.
 
+Firma de la casa (campos opcionales por toma; sin ellos el comportamiento es el de siempre):
+  entrada: {"tipo": "entintado", "dur": 1.5}   la ilustración se dibuja (tinta) y se pinta (color); solo imagen/video_ia,
+                                               en la apertura y cambios de capítulo (≤ 25 % de las tomas). 0 USD.
+  transicion: "fundido" | "mancha" | "corte"  mancha = gota de tinta que se expande y revela la toma (0.7 s)
+  anotaciones: [{"tipo": "circulo|subrayado|flecha", "x": .5, "y": .4, "w": .3, "h": .12, "en": "palabra"}]
+  titulo.texto con *palabras* entre asteriscos → color de acento
+Y por pieza: "cierre": true (sello estampado al final; texto/logo en config.local.json > ilustrado.sello).
+Sin estilo.prompt se usa el estilo de la casa (config.json > ilustrado.estilo_casa, con su hoja canónica).
+
 Reglas: nunca texto dentro de las imágenes (los titulares los pone Remotion); estilo propio, no copiar fotogramas de
 otro canal; `clips` se niega a pasar de `ilustrado.tope_usd_por_pieza` sin --confirmar.
 Códigos de salida: 0 ok · 2 corrige ilustrado.json o argumentos · 3 entorno · 4 API.
@@ -31,8 +40,10 @@ import json
 import math
 import os
 import re
+import shutil
 import subprocess
 import sys
+import unicodedata
 
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 import comun  # noqa: E402
@@ -40,10 +51,15 @@ import comun  # noqa: E402
 REPO = comun.raiz_repo(__file__)
 PY = sys.executable
 MOVIMIENTOS = ("imagen", "parallax", "clip", "video_ia")
+TRANSICIONES = ("fundido", "mancha", "corte")
+ANOTACIONES = ("circulo", "subrayado", "flecha")
+ORIGENES_MANCHA = ((0.5, 0.45), (0.36, 0.58), (0.64, 0.4), (0.5, 0.62))
 ORIENT = {"vertical": ("9:16", "vertical"), "horizontal": ("16:9", "horizontal")}
 RE_ID = re.compile(r"^[a-z0-9][a-z0-9_-]{0,30}$")
 CONFIG_DEF = {"usd_imagen": 0.04, "tope_usd_por_pieza": 5.0, "video_resolucion": "720p", "video_borrador": "480p",
-              "textura": 0.35, "hervor": 2.2, "fps_animacion": 12, "fundido": 0.25}
+              "textura": 0.35, "hervor": 2.2, "fps_animacion": 12, "fundido": 0.25, "mancha": 0.7, "entintado": 1.5,
+              "cierre": 1.8, "estilo_casa": {}, "sello": {"texto": "FIN", "imagen": None}}
+CASA_DEF = {"tinta": "#26262b", "papel": "#f3ead6", "acento": "#c8452d"}
 REGLA_SIN_TEXTO = ("Absolutely no text, letters, numbers, signs with writing, logos or watermarks anywhere in the image. "
                    "Leave clean space where a headline could go.")
 ESTILO_EJEMPLO = ("Hand-drawn editorial illustration for an explainer video: irregular dark ink outlines with slight wobble, "
@@ -55,17 +71,20 @@ PLANTILLA = {
     "orientacion": "vertical",
     "voz": {},
     "musica": None,
-    "estilo": {"prompt": ESTILO_EJEMPLO, "referencias": [], "muestra": "a quiet 19th-century street corner with a shop window",
-               "tinta": "#2b2b30", "papel": "#f4ecd8", "subtitulos": False},
+    "estilo": {"referencias": [], "subtitulos": False},
+    "cierre": True,
     "tomas": [
         {"id": "t1", "tts": "Primera frase de la narración.", "imagen": "Wide shot of …", "movimiento": "imagen",
-         "camara": {"escala": [1.0, 1.12], "x": [0, 0], "y": [0, 0]}, "titulo": {"texto": "TITULAR CORTO", "pos": "arriba"}},
-        {"id": "t2", "tts": "Segunda frase.", "imagen": "Medium shot of …", "movimiento": "parallax",
-         "capas": {"sujeto": "the main object in the foreground"}, "camara": {"escala": [1.0, 1.08], "x": [0.03, -0.03]}},
+         "entrada": {"tipo": "entintado"}, "camara": {"escala": [1.0, 1.12], "x": [0, 0], "y": [0, 0]},
+         "titulo": {"texto": "TITULAR *CORTO*", "pos": "arriba"}},
+        {"id": "t2", "tts": "Segunda frase.", "imagen": "Medium shot of …", "movimiento": "parallax", "transicion": "mancha",
+         "capas": {"sujeto": "the main object in the foreground"}, "camara": {"escala": [1.0, 1.08], "x": [0.03, -0.03]},
+         "anotaciones": [{"tipo": "circulo", "x": 0.5, "y": 0.55, "w": 0.4, "h": 0.2, "en": "frase"}]},
         {"id": "t3", "tts": "Tercera frase, la toma héroe.", "imagen": "Close-up of …", "movimiento": "video_ia",
          "video": {"prompt": "Slow dolly-in toward the object; only the camera moves; keep the ink outlines and flat colors."}},
     ],
 }
+# Sin estilo.prompt la pieza usa el estilo de la casa; ESTILO_EJEMPLO queda como modelo de un prompt propio.
 
 
 # ---------------------------------------------------------------- proyecto
@@ -103,6 +122,36 @@ def config():
     return cfg, {**CONFIG_DEF, **(cfg.get("ilustrado") or {})}
 
 
+def estilo_efectivo(s, ilu):
+    """Estilo de la pieza sobre el de la casa: sin `estilo.prompt` propio, la pieza usa prompt, hoja y muestra de
+    `ilustrado.estilo_casa`. Los colores (tinta, papel, acento) heredan de la casa si la pieza no los fija."""
+    casa = {**CASA_DEF, **(ilu.get("estilo_casa") or {})}
+    est = s.get("estilo") or {}
+    propio = bool((est.get("prompt") or "").strip())
+    return {"prompt": est["prompt"].strip() if propio else (casa.get("prompt") or ESTILO_EJEMPLO),
+            "muestra": est.get("muestra") or (None if propio else casa.get("muestra")),
+            "hoja": None if propio else casa.get("hoja"),
+            **{k: est.get(k) or casa[k] for k in ("tinta", "papel", "acento")}, "casa": not propio}
+
+
+def _norm(w):
+    w = unicodedata.normalize("NFD", w.lower())
+    return re.sub(r"[^a-z0-9]", "", "".join(c for c in w if unicodedata.category(c) != "Mn"))
+
+
+def tiempo_palabra(palabras, palabra):
+    """Inicio (s, absoluto) de la primera palabra de la voz igual a la 1.ª de `palabra` (o que empieza por ella)."""
+    objetivo = _norm(palabra.split()[0]) if (palabra or "").split() else ""
+    if not objetivo:
+        return None
+    for exacta in (True, False):
+        for w in palabras or []:
+            n = _norm(w["w"])
+            if n == objetivo if exacta else n.startswith(objetivo):
+                return w["a"]
+    return None
+
+
 def ruta_img(t):
     return f"img/{t['id']}.png"
 
@@ -119,18 +168,25 @@ def validar_spec(s, p):
     if s.get("orientacion", "vertical") not in ORIENT:
         err("orientacion", repr(s.get("orientacion")), "Usa vertical u horizontal.")
     est = s.get("estilo") or {}
-    if len((est.get("prompt") or "").split()) < 12:
-        err("estilo.prompt", "falta o es muy corto", "Describe trazo, relleno, papel y paleta (≥ 12 palabras); se repite igual en todas las tomas.")
+    if (est.get("prompt") or "").strip() and len(est["prompt"].split()) < 12:
+        err("estilo.prompt", "muy corto", "Describe trazo, relleno, papel y paleta (≥ 12 palabras) o quítalo para usar el estilo de la casa.")
+    for k in ("tinta", "papel", "acento"):
+        if est.get(k) and not re.match(r"^#[0-9a-fA-F]{6}$", str(est[k])):
+            err(f"estilo.{k}", repr(est[k]), "Color hexadecimal #rrggbb.")
+    cierre = s.get("cierre")
+    if cierre not in (None, True, False) and not isinstance(cierre, dict):
+        err("cierre", repr(cierre), 'Usa true o {"texto": "…", "dur": 1.8}.')
     for i, ref in enumerate(est.get("referencias") or []):
         if not os.path.exists(p.r(ref)):
             err(f"estilo.referencias[{i}]", f"no existe recursos/{ref}", "Cópiala a recursos/ o quítala (estilo la genera).")
-    if not est.get("referencias") and not est.get("muestra"):
+    if not est.get("referencias") and not est.get("muestra") and (est.get("prompt") or "").strip():
         w.append("W  estilo: sin referencias ni `muestra`; `estilo` generará la hoja con el propio prompt.")
     tomas = s.get("tomas")
     if not isinstance(tomas, list) or not tomas:
         err("tomas", "vacío", "Agrega al menos una toma.")
         return e, w
     vistos = set()
+    n_entintado = 0
     for i, t in enumerate(tomas):
         r = f"tomas[{i}]"
         tid = t.get("id")
@@ -155,12 +211,58 @@ def validar_spec(s, p):
             w.append(f"W  {r}.titulo: {len(tit)} caracteres; un titular cinético legible tiene ≤ 34.")
         if not (t.get("tts") or "").strip() and not t.get("min"):
             err(f"{r}", "sin tts ni min", "Pon la narración en `tts` o una duración en `min` (s).")
+        ent = t.get("entrada")
+        if ent is not None:
+            if not isinstance(ent, dict) or ent.get("tipo") != "entintado":
+                err(f"{r}.entrada", repr(ent), 'Usa {"tipo": "entintado"} (dur opcional, 0.8–3 s).')
+            elif mov not in ("imagen", "video_ia"):
+                err(f"{r}.entrada", f"no aplica a {mov}", "Solo en tomas imagen o video_ia: en parallax el fondo editado no "
+                    "coincide con la imagen y un clip propio no tiene ilustración de partida.")
+            elif not isinstance(ent.get("dur", 1.5), (int, float)) or not 0.8 <= ent.get("dur", 1.5) <= 3:
+                err(f"{r}.entrada.dur", repr(ent.get("dur")), "Entre 0.8 y 3 s (1.5 por defecto): más largo retrasa la imagen que la voz ya nombra.")
+            else:
+                n_entintado += 1
+        tr = t.get("transicion")
+        if tr is not None:
+            tipo = tr if isinstance(tr, str) else (tr.get("tipo") if isinstance(tr, dict) else None)
+            if tipo not in TRANSICIONES:
+                err(f"{r}.transicion", repr(tr), f"Usa {'|'.join(TRANSICIONES)} (u objeto {{\"tipo\": \"mancha\", \"x\": .5, \"y\": .4}}).")
+            elif i == 0:
+                w.append(f"W  {r}.transicion: la primera toma no tiene toma anterior; se ignora.")
+        anots = t.get("anotaciones")
+        if anots is not None and not isinstance(anots, list):
+            err(f"{r}.anotaciones", "no es lista", 'Usa [{"tipo": "circulo", "x": .5, "y": .4, "w": .3, "h": .12, "en": "palabra"}].')
+            anots = []
+        for j, a in enumerate(anots or []):
+            ra = f"{r}.anotaciones[{j}]"
+            if not isinstance(a, dict) or a.get("tipo") not in ANOTACIONES:
+                err(f"{ra}.tipo", repr(a.get("tipo") if isinstance(a, dict) else a), f"Usa {'|'.join(ANOTACIONES)}.")
+                continue
+            for k in ("x", "y"):
+                if not isinstance(a.get(k), (int, float)) or not 0 <= a[k] <= 1:
+                    err(f"{ra}.{k}", repr(a.get(k)), "Fracción del cuadro entre 0 y 1 (0.5 = centro).")
+            if a["tipo"] == "flecha" and a.get("desde") is not None and not (
+                    isinstance(a["desde"], list) and len(a["desde"]) == 2 and all(isinstance(v, (int, float)) for v in a["desde"])):
+                err(f"{ra}.desde", repr(a.get("desde")), "Punto de partida [x, y] en fracciones del cuadro.")
+            en = a.get("en")
+            if isinstance(en, str):
+                if _norm(en.split()[0] if en.split() else "") not in {_norm(x) for x in (t.get("tts") or "").split()}:
+                    w.append(f"W  {ra}.en: «{en}» no está en el tts de la toma; se dibujará al 30 % de la toma.")
+            elif en is not None and not (isinstance(en, (int, float)) and en >= 0):
+                err(f"{ra}.en", repr(en), "Una palabra del tts o segundos desde el inicio de la toma.")
+    tope = max(1, round(0.25 * len(tomas)))
+    if n_entintado > tope:
+        w.append(f"W  entrada: entintado en {n_entintado} tomas; a partir de la tercera cansa. Déjalo en la apertura y "
+                 f"en cambios de capítulo (≤ {tope}).")
     return e, w
 
 
 def estimar(s, ilu, cat=None):
     """(usd_imagenes, usd_video, n_imagenes, s_video) con 1 intento; el costo real lo fijan los reintentos."""
-    n = 0 if (s.get("estilo") or {}).get("referencias") else 1
+    est = s.get("estilo") or {}
+    hoja_casa = (ilu.get("estilo_casa") or {}).get("hoja")
+    usa_hoja_casa = bool(not (est.get("prompt") or "").strip() and hoja_casa and os.path.exists(os.path.join(REPO, hoja_casa)))
+    n = 0 if est.get("referencias") or usa_hoja_casa else 1
     s_vid, usd_vid = 0.0, 0.0
     for t in s.get("tomas", []):
         mov = t.get("movimiento", "imagen")
@@ -238,8 +340,8 @@ def generar_imagen(p, prompt, salida, refs, relacion, modelo=None):
 
 
 def prompt_estilo(s):
-    est = s.get("estilo") or {}
-    return f"STYLE (identical in every image): {est['prompt'].strip()}\n{REGLA_SIN_TEXTO}"
+    _, ilu = config()
+    return f"STYLE (identical in every image): {estilo_efectivo(s, ilu)['prompt']}\n{REGLA_SIN_TEXTO}"
 
 
 def refs_estilo(p, s):
@@ -252,10 +354,22 @@ def etapa_estilo(p, s, a):
         print(f"estilo: {len(est['referencias'])} referencia(s) ya fijadas.")
         return 0
     rel, _ = ORIENT[s.get("orientacion", "vertical")]
+    _, ilu = config()
+    ef = estilo_efectivo(s, ilu)
+    if ef["casa"] and ef["hoja"] and os.path.exists(os.path.join(REPO, ef["hoja"])):
+        os.makedirs(p.r("estilo"), exist_ok=True)
+        ext = os.path.splitext(ef["hoja"])[1].lower() or ".png"
+        shutil.copyfile(os.path.join(REPO, ef["hoja"]), p.r("estilo", f"casa{ext}"))
+        est["referencias"] = [f"estilo/casa{ext}"]
+        guardar(p, s)
+        print(f"estilo: hoja canónica de la casa ({ef['hoja']}) → recursos/estilo/casa{ext} · 0 USD")
+        return 0
     salida = p.r("estilo", "ref_1.png")
-    muestra = est.get("muestra") or "a simple everyday scene"
+    muestra = ef["muestra"] or "a simple everyday scene"
     prompt = (f"{prompt_estilo(s)}\n\nStyle reference sheet: {muestra}. Show the style clearly: outlines, hatching, "
-              f"paper texture and palette. This image will be reused as the style reference for a whole video.")
+              f"paper texture and palette. Full-bleed composition that fills the entire frame edge to edge, no empty "
+              f"paper margins (every scene inherits this composition). This image will be reused as the style "
+              f"reference for a whole video.")
     print(f"estilo: generando la hoja de estilo ({muestra})…")
     c = generar_imagen(p, prompt, salida, [], rel)
     est["referencias"] = ["estilo/ref_1.png"]
@@ -478,6 +592,46 @@ def normalizar_clip(p, clip, s):
     return rel
 
 
+def preparar_entintado(p, t, ef, dims, fa, dur):
+    """MP4 del revelado (scripts/entintado.py) en recursos/img/<toma>_entintado_<huella>.mp4; se rehace si cambia la
+    imagen o algún parámetro. Devuelve (ruta relativa a recursos, duración s)."""
+    import zlib
+    import entintado
+    src = p.r(ruta_img(t))
+    huella = zlib.crc32(json.dumps([entintado.VERSION, dur, ef["tinta"], ef["papel"], dims, fa]).encode()) & 0xFFFFFF
+    rel = f"img/{t['id']}_entintado_{huella:06x}.mp4"
+    destino = p.r(rel)
+    if not os.path.exists(destino) or os.path.getmtime(destino) < os.path.getmtime(src):
+        entintado.revelar(src, destino, dur=dur, ancho=dims[0], alto=dims[1], tinta=ef["tinta"], papel=ef["papel"],
+                          fps_animacion=fa, semilla=entintado.semilla_de(t["id"]))
+    return rel, round((round(dur * fa) + 1) / fa, 3)
+
+
+def resolver_sello(p, s, ilu):
+    """(texto, imagen relativa a recursos | None) del sello de cierre, o None si la pieza no lleva cierre."""
+    c = s.get("cierre")
+    if not c:
+        return None
+    c = c if isinstance(c, dict) else {}
+    base = ilu.get("sello") or {}
+    imagen = c.get("imagen")
+    if imagen and not os.path.exists(p.r(imagen)):
+        print(f"AVISO cierre.imagen: no existe recursos/{imagen}; sello solo con texto.")
+        imagen = None
+    if not imagen and base.get("imagen"):
+        origen = base["imagen"] if os.path.isabs(base["imagen"]) else os.path.join(REPO, base["imagen"])
+        if os.path.exists(origen):
+            imagen = "sello" + os.path.splitext(origen)[1].lower()
+            shutil.copyfile(origen, p.r(imagen))
+        else:
+            print(f"AVISO ilustrado.sello.imagen: no existe {base['imagen']}; sello solo con texto.")
+    texto = c.get("texto", base.get("texto"))
+    if not texto and not imagen:
+        print("AVISO cierre: sin texto ni imagen de sello (config.local.json > ilustrado.sello); se omite.")
+        return None
+    return texto, imagen, float(c.get("dur") or ilu["cierre"])
+
+
 def construir_remotion(p, s):
     _, ilu = config()
     tiempos = leer_tiempos(p)
@@ -485,12 +639,44 @@ def construir_remotion(p, s):
         print("Falta la voz: corre `ilustrar.py voz`.")
         raise SystemExit(2)
     est = s.get("estilo") or {}
+    ef = estilo_efectivo(s, ilu)
+    dims = (1080, 1920) if s.get("orientacion", "vertical") == "vertical" else (1920, 1080)
+    fa = est.get("fps_animacion", ilu["fps_animacion"])
+    import componer
+    sfx, lapiz = [], {}
+
+    def rasgueo(dur):
+        clave = round(dur, 2)
+        if clave not in lapiz:
+            lapiz[clave] = componer.sfx_lapiz(clave, p.r("audio", f"lapiz_{clave:.2f}.wav"))
+        return lapiz[clave]
+
     tomas = []
+    voz_total = tiempos["_total"]["dur"]
+    sello = resolver_sello(p, s, ilu)
+    extra = sello[2] if sello else 0.0
     for i, t in enumerate(s["tomas"]):
         ti = tiempos[t["id"]]
+        # La última toma cubre hasta el final (cola de la voz + sello): si no, el cierre queda sobre papel vacío.
+        fin_toma = round(voz_total + extra, 3) if i == len(s["tomas"]) - 1 else ti["fin"]
         mov = t.get("movimiento", "imagen")
-        x = {"id": t["id"], "inicio": ti["inicio"], "fin": ti["fin"],
-             "fundido": 0 if i == 0 else t.get("fundido", ilu["fundido"])}
+        tr = t.get("transicion") or "fundido"
+        tr = tr if isinstance(tr, dict) else {"tipo": tr}
+        if i == 0 or tr["tipo"] == "corte":
+            fundido = 0
+        else:
+            fundido = t.get("fundido", ilu["mancha"] if tr["tipo"] == "mancha" else ilu["fundido"])
+        x = {"id": t["id"], "inicio": ti["inicio"], "fin": fin_toma, "fundido": fundido}
+        if fundido and tr["tipo"] == "mancha":
+            ox, oy = ORIGENES_MANCHA[sum(map(ord, t["id"])) % len(ORIGENES_MANCHA)]
+            x["transicion"] = {"tipo": "mancha", "x": tr.get("x", ox), "y": tr.get("y", oy), "semilla": sum(map(ord, t["id"]))}
+        desde = ti["inicio"] - fundido                         # inicio absoluto del <Sequence> de la toma
+        ent = t.get("entrada") if (t.get("entrada") or {}).get("tipo") == "entintado" else None
+        d_ent = 0.0
+        if ent and os.path.exists(p.r(ruta_img(t))):
+            src_e, d_ent = preparar_entintado(p, t, ef, dims, fa, float(ent.get("dur") or ilu["entintado"]))
+            x["entrada"] = {"src": src_e, "dur": d_ent}
+            sfx.append((rasgueo(d_ent * 0.62), desde + 0.05, 0.4))
         if mov in ("clip", "video_ia"):
             clip = t["clip"] if mov == "clip" else f"clips/{t['id']}.mp4"
             if not os.path.exists(p.r(clip)):
@@ -503,7 +689,9 @@ def construir_remotion(p, s):
             else:
                 clip = normalizar_clip(p, clip, s)
                 x.update(tipo="clip", src=clip, camara=t.get("camara") or {})
-                dc, dt = comun.dur(p.r(clip)), ti["fin"] - ti["inicio"] + x["fundido"]
+                if d_ent:
+                    x["imagen"] = ruta_img(t)                   # la ilustración queda quieta hasta que arranca el clip
+                dc, dt = comun.dur(p.r(clip)), fin_toma - desde - d_ent
                 if dc < dt:                                       # clip corto: se estira (≥ 0.6×) para cubrir la toma
                     x["velocidad"] = round(max(0.6, dc / dt), 3)
         elif mov == "parallax":
@@ -514,35 +702,56 @@ def construir_remotion(p, s):
             x.update(tipo="imagen", src=ruta_img(t), camara=t.get("camara") or {"escala": [1.0, 1.12]})
         if t.get("titulo"):
             x["titulo"] = t["titulo"]
+        anots = []
+        for a in t.get("anotaciones") or []:
+            en = a.get("en")
+            ab = tiempo_palabra(ti.get("palabras"), en) if isinstance(en, str) else (
+                ti["inicio"] + float(en) if isinstance(en, (int, float)) else None)
+            if ab is None:
+                ab = ti["inicio"] + 0.3 * (ti["fin"] - ti["inicio"])
+            ab = max(ab, desde + d_ent)                            # nunca antes de que termine el entintado
+            anots.append({**{k: v for k, v in a.items() if k != "en"}, "en": round(ab - desde, 3),
+                          "semilla": sum(map(ord, t["id"])) + 31 * len(anots)})
+            sfx.append((rasgueo(float(a.get("dur") or 0.5)), ab, 0.28))
+        if anots:
+            x["anotaciones"] = anots
         x["palabras"] = [{"w": w["w"], "a": round(w["a"] - ti["inicio"], 3), "b": round(w["b"] - ti["inicio"], 3)}
                          for w in ti.get("palabras") or []]
         tomas.append(x)
-    estilo = {"tinta": est.get("tinta", "#2b2b30"), "papel": est.get("papel", "#f4ecd8"),
+    estilo = {"tinta": ef["tinta"], "papel": ef["papel"], "acento": ef["acento"],
               "textura": est.get("textura", ilu["textura"]), "hervor": est.get("hervor", ilu["hervor"]),
-              "fps_animacion": est.get("fps_animacion", ilu["fps_animacion"]), "subtitulos": bool(est.get("subtitulos"))}
-    props = {"tomas": tomas, "voz": mezclar_audio(p, s, tiempos["_total"]["dur"]), "estilo": estilo}
+              "fps_animacion": fa, "subtitulos": bool(est.get("subtitulos"))}
+    total = round(voz_total + extra, 3)
+    props = {"tomas": tomas, "estilo": estilo}
+    if sello:
+        inicio = round(max(0.0, voz_total - 0.35), 3)
+        props["cierre"] = {"texto": sello[0], "imagen": sello[1], "inicio": inicio, "dur": round(total - inicio, 3)}
+        sfx.append((componer.sfx_sello(p.r("audio", "sello.wav")), inicio + 0.2, 0.55))
+    props["voz"] = mezclar_audio(p, s, total, sfx)
     spec = {"version": 1, "composicion": "Ilustrado", "orientacion": ORIENT[s.get("orientacion", "vertical")][1],
-            "duracion": tiempos["_total"]["dur"], "salida": f"{p.slug}.mp4", "props": props}
+            "duracion": total, "salida": f"{p.slug}.mp4", "props": props}
     with open(os.path.join(p.dir, "remotion.json"), "w", encoding="utf-8") as f:
         json.dump(spec, f, ensure_ascii=False, indent=1)
     return spec
 
 
-def mezclar_audio(p, s, total):
-    """Voz sola, o voz + cama con ducking (`componer.mezclar`): `musica` = "ambiental" (cama documental procedural, 0 USD)
-    o un archivo de recursos/ (CC0 o propio). Devuelve la ruta relativa a recursos/ que pinta la composición."""
+def mezclar_audio(p, s, total, sfx=()):
+    """Voz sola, o voz + cama con ducking + efectos de firma (`componer.mezclar`): `musica` = "ambiental" (cama
+    documental procedural, 0 USD) o un archivo de recursos/ (CC0 o propio). `sfx` = [(wav, inicio_s, volumen)]
+    (rasgueo de lápiz del entintado y las anotaciones, golpe del sello). Devuelve la ruta relativa a recursos/."""
     mus = s.get("musica")
-    if not mus:
+    if not mus and not sfx:
         return "voz.wav"
     import componer
+    cama, lufs = None, None
     if mus == "ambiental":
-        cama, lufs = componer.cama_ambiental(total, p.r("audio", "cama.wav")), None
-    else:
+        cama = componer.cama_ambiental(total, p.r("audio", "cama.wav"))
+    elif mus:
         cama, lufs = p.r(mus), componer.LUFS_MUSICA
         if not os.path.exists(cama):
             print(f"ERROR musica: no existe recursos/{mus} (o usa \"ambiental\").")
             raise SystemExit(2)
-    componer.mezclar(p.r("mezcla.wav"), total, [(p.r("voz.wav"), 0)], cama=cama, musica_lufs=lufs)
+    componer.mezclar(p.r("mezcla.wav"), total, [(p.r("voz.wav"), 0)], cama=cama, sfx=list(sfx), musica_lufs=lufs)
     return "mezcla.wav"
 
 

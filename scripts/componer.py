@@ -139,6 +139,31 @@ def cama_ambiental(total, salida, lufs=LUFS_MUSICA, semilla=7):
     return salida
 
 
+# ── efectos de firma del motor ilustrado (procedurales, 0 USD, deterministas) ─────────────────────────────────────────
+def sfx_lapiz(dur, salida, semilla=11):
+    """Rasgueo de lápiz sobre papel: ruido blanco en banda 1.8–7 kHz con trazos irregulares (dos senos lentos
+    multiplicados) y fundidos cortos. Se coloca bajo la voz, muy bajo, solo mientras se dibuja."""
+    os.makedirs(os.path.dirname(os.path.abspath(salida)), exist_ok=True)
+    trazos = "max(0,0.65*sin(2*PI*4.7*t)+0.45*sin(2*PI*2.9*t+1.3))*(0.75+0.25*sin(2*PI*11*t))"
+    run("ffmpeg", "-y", "-v", "error", "-nostdin", "-f", "lavfi",
+        "-i", f"anoisesrc=color=white:r=48000:a=0.5:d={dur:.3f}:seed={semilla}",
+        "-af", f"highpass=f=1800,lowpass=f=7000,volume='{trazos}':eval=frame,"
+               f"afade=t=in:st=0:d=0.05,afade=t=out:st={max(0.0, dur - 0.18):.3f}:d=0.18,"
+               "aformat=sample_rates=48000:channel_layouts=stereo",
+        "-c:a", "pcm_s16le", salida)
+    return salida
+
+
+def sfx_sello(salida):
+    """Golpe de sello de goma: grave amortiguado (62 + 124 Hz) y un chasquido de ruido corto."""
+    os.makedirs(os.path.dirname(os.path.abspath(salida)), exist_ok=True)
+    expr = ("st(1,random(9)*2-1);(1-exp(-t/0.002))*exp(-t*14)*(0.9*sin(2*PI*62*t)+0.4*sin(2*PI*124*t))"
+            "+0.35*ld(1)*exp(-t*90)")
+    run("ffmpeg", "-y", "-v", "error", "-nostdin", "-f", "lavfi", "-i", f"aevalsrc=exprs='{expr}':s=48000:d=0.6",
+        "-af", "lowpass=f=3200,aformat=sample_rates=48000:channel_layouts=stereo", "-c:a", "pcm_s16le", salida)
+    return salida
+
+
 # ── mezcla ──────────────────────────────────────────────────────────────────────────────────────────────────────────
 def mezclar(salida, total, tomas, cama=None, sfx=(), voz_lufs=LUFS_VOZ, musica_lufs=None, ducking=DUCKING):
     """Mezcla final estéreo 48 kHz: tomas de voz colocadas en su inicio → loudnorm `voz_lufs` → ducking de la cama →
