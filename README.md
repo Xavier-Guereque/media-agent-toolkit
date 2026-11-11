@@ -1,179 +1,366 @@
-# media-agent-toolkit
+# 🎬 media-agent-toolkit
 
-## Descripción
+**Edición de video hecha por agentes de IA: tú pides el video, el agente escribe un JSON y los motores del toolkit hacen
+el resto.** FFmpeg primero; modelos de IA solo donde aportan; todo medido, verificado y con su costo a la vista.
 
-Toolkit para mejorar, automatizar y estandarizar la edición de video con agentes de IA: descargar video de YouTube, cortar video, unir clips, transiciones, marca de agua, quitar silencios, quitar ruido, subtítulos, traducir el texto sobrepuesto (rótulos incrustados) de un video existente, doblaje, voz en off (TTS con verificación contra el guion y clonación), música y efectos de sonido (procedurales o CC0) con mezcla y ducking, imágenes, reels narrados, promos con UI animada, cursos en video, composiciones con Remotion y conversión de formatos/resoluciones.
+![versión](https://img.shields.io/badge/versión-1.12.0-c8452d)
+![FFmpeg](https://img.shields.io/badge/FFmpeg-8%2B-007808)
+![Python](https://img.shields.io/badge/Python-3-3776ab)
+![Node](https://img.shields.io/badge/Node-20%2B-339933)
+![macOS · Linux · Windows 11](https://img.shields.io/badge/macOS%20·%20Linux%20·%20Windows%2011-lightgrey)
 
-## Contexto para agentes
+<p align="center">
+  <img src="assets/imagenes/readme/firma.jpg" alt="Short ilustrado hecho con el toolkit: transición de mancha de tinta, anotación a mano, flecha y sello final" width="100%">
+  <br><sub>Cuadros de un Short de historia hecho con el motor ilustrado: mancha de tinta, anotaciones a mano, acento de color y sello final. ~0.85 USD en total.</sub>
+</p>
 
-Este repositorio está diseñado para que un agente (Claude, OpenCode, KiloCode, etc.) cargue sus funciones al iniciar:
+---
 
-- `AGENT.md` — contexto principal, reglas y flujo de decisión
-- `CLAUDE.md` — entrada para Claude Code (referencia a `AGENT.md`)
-- `SKILL.md` — catálogo de skills con ejemplos
-- `HERMES.md` — entrada para Hermes Agent (mapeo a sus herramientas nativas)
-- `config.json` — parámetros, modelos y herramientas (fuente de verdad)
-- `.env.example` — API keys requeridas/opcionales (copiar a `.env`)
+## ¿Qué puede hacer?
 
-## Instalación
+| | Área | Ejemplos |
+|---|---|---|
+| ✂️ | **Edición básica** | cortar, unir, transiciones, marca de agua, convertir formato y resolución, descargar de YouTube |
+| 🔇 | **Limpieza** | quitar silencios (alineado a cuadros), quitar ruido, subtítulos `.srt/.vtt` y quemados |
+| 🎙️ | **Voz y audio** | voz en off con verificación contra el guion, clonación, doblaje, música procedural o CC0, SFX, mezcla con ducking a −14 LUFS |
+| 🖼️ | **Imagen** | imágenes en el estilo de una referencia, fotos libres de Wikimedia, sustituir una mascota en un video |
+| 📱 | **Formatos cortos** | reels verticales narrados, promos con UI animada, traducir el texto incrustado de un video |
+| 🎓 | **Cursos en video** | metodología, evaluación entre lecciones, carta descriptiva, quiz para LMS y reproductor HTML |
+| ✏️ | **Explicadores ilustrados** | historia o divulgación con look de ilustración a mano, cámara, parallax y clips de IA en tomas clave |
+| ⚛️ | **Motion graphics libres** | composiciones React → MP4 con Remotion |
 
-1. Clonar el repo y copiar las variables de entorno: `cp .env.example .env` y rellenar al menos `OPENROUTER_API_KEY`.
-2. Verificar el software requerido (FFmpeg, python3, curl, jq):
+Son **25 skills** descritas en [SKILL.md](SKILL.md). El agente elige la correcta con un clasificador de ~0.00003 USD.
 
-   ```bash
-   zsh scripts/preflight.sh
-   ```
+---
 
-   Para el **motor promo** (videos con UI animada) también hace falta **Node ≥ 20** (instalación manual:
-   nvm o nodejs.org) y las dependencias de `promo/` (`npm ci --prefix promo`, que el preflight instala;
-   renderiza con el Google Chrome del sistema, que se parchea solo, y si no está usa el Chromium de
-   Playwright en caché).
+## ¿Cómo funciona?
 
-   **Opcional — motor Remotion** (composiciones libres React → MP4, skill `remotion-video`): `npm ci --prefix remotion && npx --prefix remotion remotion browser ensure` (~850 MB con el Chrome Headless Shell) y, para que el agente escriba las composiciones con las skills oficiales, `npx skills add remotion-dev/skills -a claude-code -y`. Licencia de Remotion: gratis para personas, ONG y empresas de hasta 3 personas; con 4+ empleados hace falta la [Company License](https://remotion.pro/license). Cada copia fija la suya en `config.local.json` → `{"remotion": {"licencia": "gratuita"}}` (o `"company"`).
-
-   El script instala lo requerido que falte (solo comandos de su allowlist fija; nunca ejecuta strings arbitrarios del config) y avisa de los opcionales (`faster-whisper`, `auto-editor`, `deepFilter`, `yt-dlp`, `tesseract`). Detalles en [docs/Preflight-Software.md](docs/Preflight-Software.md).
-
-## Uso
-
-El flujo lo ejecuta el agente al recibir una tarea de edición (ver `AGENT.md`):
-
-1. **Auto-actualización (opt-in):** solo si `config.json > actualizacion.auto_pull` es `true` (default `false`), hace `git fetch` + `git pull --ff-only` al iniciar; si el pull toca `config.json`, `AGENT.md`, `SKILL.md` o `scripts/`, pide confirmación antes de adoptar los cambios.
-2. **Elegir la skill:** `python3 scripts/enrutar.py "<petición>"` decide con JEV (~0.00003 USD) qué skill de `SKILL.md` aplica y qué comandos siguen; si la elección no es clara, el agente pregunta entre las dos mejores. Las decisiones estructuradas de los scripts usan `scripts/decision.py` (Decisions API de OpenRouter).
-3. **Preguntas aclaratorias:** orientación (vertical/horizontal, siempre), nombre del proyecto, resolución, formato, voz, música, transiciones (default: fade 500 ms), subtítulos, unión de varios videos y duración objetivo — en una sola ronda, antes de ejecutar.
-4. **Proyecto:** cada video se trabaja en `proyectos/<slug>_<DDMMAAAA>/` con `recursos/` para insumos/intermedios y las salidas en la raíz del proyecto. `proyectos/` existe en blanco en GitHub pero su contenido nunca se respalda (ver `AGENT.md` §13).
-5. **Preflight:** corre `scripts/preflight.sh`.
-6. **Edición** con FFmpeg primero y modelos de OpenRouter donde haga falta; música e imágenes/videos solo de fuentes libres de derechos ([docs/Musica-Libre-de-Derechos.md](docs/Musica-Libre-de-Derechos.md), [docs/Imagenes-Libres-de-Derechos.md](docs/Imagenes-Libres-de-Derechos.md) — Pexels incluye videos).
-7. **Videos promo con UI animada:** el agente escribe solo `promo.json` (contenido) y corre
-   `python3 scripts/promo.py validar | cuadros | todo <proyecto>`; el motor (`promo/`, HTML → cuadros →
-   FFmpeg) pone tiempos, animación, audio y QA. Ver [docs/Motor-Promo.md](docs/Motor-Promo.md).
-   Audio CC0 opcional con `scripts/fetch_audio.py` ([docs/Audio-CC0.md](docs/Audio-CC0.md)).
-8. **Traducir el texto sobrepuesto de un video existente** (o bajar uno de YouTube): `yt-dlp` para la
-   descarga y `python3 scripts/pantalla.py detectar <video> --json caps.json` → editar el JSON con la
-   traducción → `python3 scripts/pantalla.py generar caps.json --render`. Reemplaza los rótulos
-   incrustados conservando audio y duración (ver [docs/Lecciones-2026-10-07-traduccion-texto-en-pantalla.md](docs/Lecciones-2026-10-07-traduccion-texto-en-pantalla.md)).
-9. **Render en background** con reporte de avance cada 5 minutos.
-10. **Reporte de costos** al terminar: `python3 scripts/costo_sesion_hermes.py --log <log>` (si el agente es Hermes) y `python3 scripts/costo_generacion.py` (detalles en [docs/Costos-y-Avance.md](docs/Costos-y-Avance.md)).
-11. **Aprendizaje continuo:** tras cada edición se responden las 2 preguntas de mejora y se actualiza la bitácora en `docs/` (ver `AGENT.md` §15).
-
-> **Preferencias locales:** las personalizaciones de cada copia del repo van en `docs/Preferencias-Usuario.md` (gitignored, no se commitean); solo con "esto va en la versión base del repo" se modifican los archivos base (ver `AGENT.md` §16).
-
-### Voz en off, música y efectos de sonido
-
-```bash
-python3 scripts/lint_voz.py --guion guion.txt          # antes de pagar el TTS: cifras, preguntas, dos puntos, marcas
-python3 scripts/narrar.py proyectos/<p>                # recursos/guion.json → una toma por escena, tiempos medidos y .srt
-python3 scripts/verificar_voz.py --guion guion.txt --wav-dir proyectos/<p>/recursos   # diff dirigido contra el guion
-python3 scripts/promo.py voz proyectos/<p>             # voz del motor promo (Fish por defecto, karaoke por palabra)
-python3 scripts/promo.py audio proyectos/<p>           # música procedural + SFX (+ voz) → recursos/audio/mezcla.wav
-python3 scripts/fetch_audio.py "whoosh transition" -n 6 --profile sfx   # solo CC0 (Openverse / Freesound)
+```mermaid
+flowchart LR
+    U([🗣️ Petición del usuario]) --> R[enrutar.py<br/>elige la skill]
+    R --> P{¿Faltan datos?}
+    P -- sí --> Q[Una sola ronda<br/>de preguntas]
+    P -- no --> J
+    Q --> J[El agente escribe<br/>un JSON de contenido]
+    J --> V[validar<br/>lints + costo estimado]
+    V --> M[Motor<br/>FFmpeg · Remotion · HTML]
+    M --> C[Checks automáticos<br/>BT.709 · LUFS · duración]
+    C --> E([📦 Entrega en proyectos/])
+    E --> L[Bitácora de lecciones<br/>docs/]
 ```
 
-- **Voz por defecto:** `config.json > voz_default` (Gemini 3.8 Flash TTS, voz Achird; alternas Puck, Sulafat y Gacrux). Cada copia puede fijar otra en `config.local.json` (gitignored), y cada curso puede cambiarla con `"voz": {"proveedor": "speech", "voice": "Puck"}`. Locución al pie de la letra para promos: `modelos.voz_tts` (`fish-audio/s2-pro`); clonación zero-shot con `modelos.voz_clonada` y la muestra en `muestras/` (nunca se commitea). ElevenLabs solo si hay key y se pide.
-- **Por qué hay lint y verificación:** los modelos de chat con audio a veces "contestan" el guion en vez de leerlo (preguntas, frases con dos puntos) y la transcripción confunde cifras y marcas. `lint_voz.py` frena esos casos antes de gastar, y `verificar_voz.py` pregunta solo por palabras extra, faltantes y la cifra clave. Señal de alarma: más de 0.6 s por palabra.
-- **Mezcla:** `sonido.py` (lo corre `promo.py audio`) deja la voz a -16 LUFS, la música a -24 LUFS con ducking por sidechain y el máster a -14 LUFS / -1.5 dBTP, y verifica que la voz quede ≥ 9 dB sobre la música. La música procedural es solo FFmpeg y determinista.
+**La regla de oro:** el agente **no escribe código de video**. Escribe contenido (`promo.json`, `curso.json`,
+`ilustrado.json`…) y los motores ponen tiempos, animación, audio y control de calidad. Así el resultado es repetible y
+barato de corregir.
 
-Skills `crear-audio`, `clonar-voz` y `musica-fondo` en `SKILL.md`; política CC0 en [docs/Audio-CC0.md](docs/Audio-CC0.md) y casting de voces en [docs/Lecciones-2026-10-31-muestras-voz-curso.md](docs/Lecciones-2026-10-31-muestras-voz-curso.md).
+| El agente escribe | Motor | Comando | Detalle |
+|---|---|---|---|
+| `promo.json` | Promo (HTML → cuadros → FFmpeg) | `python3 scripts/promo.py todo <p>` | [Motor-Promo](docs/Motor-Promo.md) |
+| `curso.json` | Cursos (mundo continuo, Remotion) | `python3 scripts/curso.py todo <p> --qa` | [Motor-Curso](docs/Motor-Curso.md) |
+| `ilustrado.json` | Ilustrado (imágenes + Remotion) | `python3 scripts/ilustrar.py todo <p>` | [Motor-Ilustrado](docs/Motor-Ilustrado.md) |
+| `reel.json` | Reels (Ken Burns + ASS + FFmpeg) | `python3 scripts/reel.py --spec … todo` | [SKILL](SKILL.md) |
+| `doblaje.json` | Doblaje | `python3 scripts/doblar.py todo …` | [SKILL](SKILL.md) |
+| TSX + `remotion.json` | Remotion libre | `python3 scripts/remotion.py render <p>` | [Motor-Remotion](docs/Motor-Remotion.md) |
 
-### Subtítulos y silencios
+---
 
-```bash
-python3 scripts/subtitulos.py <video|audio> --quemar --glosario "ACME,HIKVISION,WhatsApp"   # .srt/.vtt y, opcional, quemados
-python3 scripts/silencios.py <entrada> --reporte                                              # simulacro: cuánto quitaría
-python3 scripts/silencios.py <entrada> --proyecto proyectos/<slug>_<DDMMAAAA>                 # corta imagen y audio en los mismos rangos
+## ✏️ Destacado: el motor ilustrado y su firma
+
+Explicadores con look de **ilustración a mano**: tinta, lavados sepia, lápiz de color y papel. Una sola
+`OPENROUTER_API_KEY` para imágenes, voz y video.
+
+```mermaid
+flowchart LR
+    A[ilustrado.json] --> B[estilo<br/>hoja de la casa]
+    B --> C[voz<br/>tiempos medidos]
+    C --> D[imágenes<br/>1 por toma]
+    D --> E[capas<br/>parallax]
+    E --> F[hoja de contacto<br/>👀 revisar]
+    F --> G[clips IA<br/>solo tomas héroe]
+    G --> H[render<br/>Remotion + FFmpeg]
 ```
 
-Los tiempos de los subtítulos salen de pausas medidas (o de faster-whisper), nunca de un LLM; los cortes de silencio se alinean a la rejilla de cuadros para que la voz no se adelante a los labios. Detalle en [docs/Subtitulos-y-Silencios.md](docs/Subtitulos-y-Silencios.md).
+**La ilustración se dibuja sola.** El *entintado* saca la tinta de la misma imagen, la traza y luego entra el color como
+acuarela. Se calcula en local, cuesta 0 USD y su último cuadro es la ilustración exacta:
 
-### Reels verticales narrados
+<p align="center"><img src="assets/imagenes/readme/entintado.jpg" alt="Secuencia del entintado: papel en blanco, trazos de tinta, color que se expande y la ilustración final" width="100%"></p>
+
+<table>
+<tr>
+<td width="68%">
+
+| Pieza de la firma | En `ilustrado.json` |
+|---|---|
+| **Estilo de la casa**: sepia + un solo acento bermellón | sin `estilo.prompt` |
+| **Entintado**: se dibuja y se pinta | `"entrada": {"tipo": "entintado"}` |
+| **Mancha**: gota de tinta que revela la toma | `"transicion": "mancha"` |
+| **Anotaciones** a mano, sincronizadas con la voz | `"anotaciones": [{"tipo": "circulo", "x": .5, "y": .4, "en": "palabra"}]` |
+| **Acento** en el titular | `"titulo": {"texto": "Solo *5 segundos*"}` |
+| **Sello** final con golpe de sonido | `"cierre": true` |
+
+Cuatro niveles de movimiento por toma, del más barato al más caro: `imagen` (cámara, 0 USD) → `parallax` (capas,
+~0.08 USD) → `clip` (Blender o metraje propio) → `video_ia` (~0.026 USD/s con Seedance 1.5 Pro).
+
+</td>
+<td width="32%" align="center">
+<img src="assets/imagenes/readme/hoja_casa_mini.jpg" alt="Hoja de estilo canónica de la casa: farero subiendo una escalera de caracol con linterna y bufanda rojas" width="100%"><br>
+<sub>Hoja canónica de la casa: viaja como referencia en cada imagen para que todos los videos se vean iguales.</sub>
+</td>
+</tr>
+</table>
+
+---
+
+## 🚀 Instalación
 
 ```bash
-python3 scripts/reel.py --spec proyectos/<slug>_<DDMMAAAA>/reel.json todo   # etapas | segmentos | ass | audio | video | todo | verificar
+git clone <este-repo> && cd media-agent-toolkit
+cp .env.example .env        # rellena al menos OPENROUTER_API_KEY
 ```
 
-Escenas con Ken Burns y `xfade`, rótulos ASS, voz -15 LUFS y música procedural con ducking. Spec de ejemplo en `scripts/reel.ejemplo.json`; skill `armar-reel` en `SKILL.md`.
-
-### Fotos libres de Wikimedia Commons
+<details open>
+<summary><b>macOS / Linux</b></summary>
 
 ```bash
-python3 scripts/commons.py buscar consultas.json proyectos/<p>/recursos/busqueda          # candidatos + hoja de contactos
-python3 scripts/commons.py bajar elegidas.json proyectos/<p>/recursos/busqueda/candidatos.json proyectos/<p>/recursos/img
+zsh scripts/preflight.sh    # verifica e instala FFmpeg, python3, curl y jq (allowlist fija)
 ```
 
-Licencia verificada por archivo (dominio público, CC0, CC BY, CC BY-SA) y atribución en `recursos/img/creditos.json`; CC BY y BY-SA exigen crédito en pantalla. Skill `imagenes-libres` en `SKILL.md`.
+</details>
 
-### Doblar un video existente y ver el avance
+<details>
+<summary><b>Windows 11</b></summary>
 
-```bash
-python3 scripts/doblar.py transcribir proyectos/<p>/recursos/origen/original.mp4 --proyecto proyectos/<p>
-python3 scripts/doblar.py unidades proyectos/<p>      # → doblaje.json; el agente traduce `es`
-python3 scripts/tablero.py                            # http://127.0.0.1:8765/ (se actualiza solo)
-python3 scripts/doblar.py todo proyectos/<p>/doblaje.json && python3 scripts/doblar.py verificar proyectos/<p>/doblaje.json
+```powershell
+winget install --id Gyan.FFmpeg -e      # full_build: libass, xfade, loudnorm, drawtext, sidechaincompress
+winget install --id jqlang.jq -e
 ```
 
-Skills `doblar-video` y `tablero-avance` en `SKILL.md`; estándar de avance en `AGENT.md` §9.
+Abre una terminal nueva después de instalar, porque winget cambia el PATH del usuario. `preflight.sh` todavía no corre en
+Windows; las notas están en [Lecciones-2026-11-10-compatibilidad-windows](docs/Lecciones-2026-11-10-compatibilidad-windows.md).
 
-### Crear una imagen o un personaje en el estilo de una referencia
+</details>
 
-```bash
-python3 scripts/imagen.py generar --prompt-archivo proyectos/<p>/recursos/prompt.md \
-    --referencia proyectos/<p>/recursos/referencia/ref.jpg --relacion 9:16 --salida proyectos/<p>/imagen.png
-# corregir detalles sin perder la composición: la imagen generada como referencia + "keep everything, change only…"
-python3 scripts/imagen.py generar --prompt "…" --referencia proyectos/<p>/imagen.png --relacion 9:16 --salida proyectos/<p>/imagen-v2.png
+<details>
+<summary><b>Motores opcionales (Node ≥ 20)</b></summary>
+
+- **Promo:** `npm ci --prefix promo`. Usa el Chrome del sistema, o el Chromium de Playwright si no hay Chrome.
+- **Remotion** (cursos, ilustrado, composiciones libres): `npm ci --prefix remotion && npx --prefix remotion remotion browser ensure`
+  (~850 MB). Licencia: gratis para personas, ONG y empresas de hasta 3 personas; con 4 o más hace falta la
+  [Company License](https://remotion.pro/license). Fíjala en `config.local.json` → `{"remotion": {"licencia": "gratuita"}}`.
+- **Blender ≥ 5.1** (opcional): animaciones técnicas 3D que entran como escena de un curso o toma `clip`.
+- Herramientas opcionales sobre las que avisa el preflight: `faster-whisper`, `auto-editor`, `deepFilter`, `yt-dlp`, `tesseract`.
+
+Detalle en [Preflight-Software](docs/Preflight-Software.md).
+
+</details>
+
+---
+
+## 🧭 Para agentes
+
+El repo está pensado para que un agente (Claude Code, OpenCode, KiloCode, Hermes…) lo cargue al iniciar:
+
+```mermaid
+flowchart LR
+    A[CLAUDE.md / HERMES.md<br/>entrada por agente] --> B[AGENT.md<br/>reglas y flujo]
+    B --> C[SKILL.md<br/>25 skills con ejemplos]
+    C --> D[config.json<br/>modelos y parámetros]
+    D --> E[.env<br/>API keys]
 ```
 
-Skill `crear-imagen` en `SKILL.md` (modelo `config.json > modelos.imagen`, ~0.04 USD por imagen).
+1. **Elegir la skill:** `python3 scripts/enrutar.py "<petición>"`.
+2. **Preguntar una sola vez:** orientación (siempre), nombre, voz, música, subtítulos y duración, todo antes de gastar.
+3. **Trabajar en un proyecto:** `proyectos/<slug>_<DDMMAAAA>/`, con `recursos/` para insumos e intermedios. Su contenido
+   **nunca** se sube a git.
+4. **Renderizar en segundo plano** con avance en vivo (`python3 scripts/tablero.py` → http://127.0.0.1:8765/).
+5. **Reportar costos** (`python3 scripts/costo_generacion.py`) y **escribir la bitácora** en `docs/Lecciones-*.md`.
 
-### Sustituir la mascota fija de un video por otro personaje
+> Las personalizaciones de cada copia van en `config.local.json` y `docs/Preferencias-Usuario.md` (los dos están en
+> gitignore). Solo con «esto va en la versión base» se tocan los archivos base ([AGENT.md](AGENT.md) §16).
+
+---
+
+## 📚 Recetas rápidas
+
+<details>
+<summary><b>✏️ Explicador ilustrado (Short de historia o divulgación)</b></summary>
 
 ```bash
-PY=~/.venvs/imagen/bin/python   # uv venv --python 3.12 ~/.venvs/imagen && uv pip install numpy pillow opencv-python-headless
-$PY scripts/reemplazar_personaje.py rastrear proyectos/<p>/recursos/origen/original.mp4 asset-viejo.png --salida rastreo.json --region 0,300,600,1500
-$PY scripts/reemplazar_personaje.py solape proyectos/<p>/recursos/origen/original.mp4 rastreo.json nuevo-alfa.png --candidatos 0.55:-6,0.52:-6 --pies 1120
-$PY scripts/reemplazar_personaje.py reemplazar proyectos/<p>/recursos/origen/original.mp4 rastreo.json asset-viejo.png nuevo-alfa.png proyectos/<p>/recursos/origen/original-nuevo.mp4 --escala 0.52 --x -6 --pies 1120
+python3 scripts/ilustrar.py nuevo reloj-longitud --orientacion vertical   # plantilla con la firma de la casa
+python3 scripts/ilustrar.py validar reloj-longitud    # lints + costo estimado, sin gastar
+python3 scripts/ilustrar.py estilo  reloj-longitud    # hoja de la casa (0 USD) o una propia
+python3 scripts/ilustrar.py voz     reloj-longitud    # la duración de cada toma sale de la voz medida
+python3 scripts/ilustrar.py imagenes reloj-longitud && python3 scripts/ilustrar.py capas reloj-longitud
+python3 scripts/ilustrar.py hoja    reloj-longitud    # 👀 revisar antes de pagar video
+python3 scripts/ilustrar.py clips   reloj-longitud --confirmar
+python3 scripts/ilustrar.py render  reloj-longitud    # --borrador = 540p para revisar rápido
 ```
 
-Skill `reemplazar-personaje-video` en `SKILL.md`; luego `doblar.py render` + `cortinillas` con un spec copia si el video estaba doblado.
+Solo el video IA: `python3 scripts/video_ia.py modelos --i2v --relacion 9:16` (precios leídos al momento), `generar` y
+`comparar --modelos a,b,c`.
 
-### Composiciones libres con Remotion (motor opcional)
+</details>
 
-```bash
-python3 scripts/remotion.py nuevo demo-producto --duracion 12          # remotion.json + remotion/src/composiciones/proyectos/DemoProducto.tsx
-# editar el TSX (skill /remotion-markup) y remotion.json (props; rutas relativas a recursos/ del proyecto)
-python3 scripts/remotion.py validar demo-producto
-python3 scripts/remotion.py estudio demo-producto                        # vista previa en http://localhost:3000 (--detener para parar)
-python3 scripts/remotion.py render demo-producto                         # h264 yuv420p + acabado FFmpeg (BT.709, -14 LUFS, faststart)
-```
-
-Skill `remotion-video` en `SKILL.md` (solo para motion graphics que `promo-ui` no expresa; FFmpeg primero), detalle en [docs/Motor-Remotion.md](docs/Motor-Remotion.md). Recetas verificadas:
-
-- **Explicadores largos narrados:** `narrar.py` para la voz y la duración de cada escena, y una composición declarativa que pinta `props.escenas`, de modo que se regenera sin tocar React.
-- **Promos con metraje real** (grabación de pantalla del producto): tomas localizadas con hojas de contacto, datos personales excluidos con `crop` al cortar cada clip, un solo TSX con `foco` por orientación y un `remotion.<orientación>.json` por salida (9:16 y 16:9).
-- **Piezas comunes en la base:** subtítulo karaoke, titular animado, curvas de movimiento y fuentes en `remotion/src/componentes/` y `remotion/src/lib/`; props, mezcla con ducking y specs por orientación en `scripts/componer.py`; lienzos PIL para reels sin fotos en `scripts/lienzo.py`; constructores de `curso.json` en `scripts/curso_spec.py`. El código de cada proyecto solo declara diseño y contenido.
-
-### Cursos en video
+<details>
+<summary><b>🎓 Curso en video</b></summary>
 
 ```bash
-python3 scripts/curso.py nuevo mi-curso      # copia el ejemplo de oro a proyectos/
+python3 scripts/curso.py nuevo mi-curso      # copia el ejemplo de oro
 python3 scripts/curso.py validar mi-curso    # lints pedagógicos, sin costo
 python3 scripts/curso.py todo mi-curso --qa  # voz, stills, render, carta, quiz y transcripciones
 ```
 
-Etapas sueltas: `validar → voz → componer → qa [--jev] → render [--leccion id] [--borrador] → carta → reproductor`.
+- **Antes de empezar:** un cuestionario de propósito, público, evaluación, entrega, voz y forma.
+- **Cada lección es un mundo continuo:** cámara y actores que se mueven con las palabras del guion.
+- **Por lección se entrega:** MP4 a −16 LUFS, `.srt`, `.vtt` y la transcripción.
+- **Por curso se entrega:** la carta descriptiva, `quiz.json`/`quiz.md` y un `reproductor.html` que bloquea la siguiente
+  lección hasta aprobar.
 
-- **Cuestionario de arranque:** antes de `nuevo`, el agente hace una sola ronda de preguntas (propósito, público, evaluación, entrega, voz y forma) y lo elegido se escribe en `curso.modo` `{proposito, evaluacion, visual}`, `curso.voz` y `curso.estilo`. Con «usa los defaults» no pregunta.
-- **Mundo continuo:** en lugar de láminas, cada lección es un mundo con cámara y actores (`mundo.actores`, incluido el actor `imagen`) que se mueven con `pantalla.acciones` ligadas a palabras del guion; todo movimiento debe explicar algo.
-- **Evaluación:** preguntas intercaladas y, con `evaluacion` `entre-lecciones` o `ambas`, un `prueba_final` por lección; `reproductor.html` obliga a responder y bloquea la siguiente lección hasta aprobar o agotar reintentos.
-- **Salidas:** por lección MP4 (-16 LUFS), `.srt`, `.vtt` y transcripción; por curso `carta-descriptiva.md`, `quiz.json`/`quiz.md` (para un LMS) y `reproductor.html`.
+Metodología en [Metodologia-Cursos-Video](docs/Metodologia-Cursos-Video.md).
 
-Skill `crear-curso` en `SKILL.md`. Metodología con evidencia, STPS/CONOCER/SEP y formato visual en [docs/Metodologia-Cursos-Video.md](docs/Metodologia-Cursos-Video.md); contratos en [docs/Motor-Curso.md](docs/Motor-Curso.md).
+</details>
 
-## Configuración
+<details>
+<summary><b>📣 Promo con UI animada</b></summary>
 
-- `config.json` — fuente de verdad: modelos por tarea, herramientas, transiciones, marca de agua, salida, software, fuentes de música/imágenes libres, costos y render. Incluye `version` y `construccion`.
-- `config.local.json` — valores personales de cada copia (gitignored), fusionados clave a clave sobre `config.json`: p. ej. otra `voz_default` u otro modelo sin tocar los archivos base.
-- `.env` — API keys: `OPENROUTER_API_KEY` (requerida para Claude), `ELEVENLABS_API_KEY` (opcional, voz/clonación), `PIXABAY_API_KEY` / `PEXELS_API_KEY` / `UNSPLASH_ACCESS_KEY` (opcionales, assets libres; sin ellas se usan las fuentes sin key: local, procedural, wikimedia), `FREESOUND_TOKEN` (opcional, SFX CC0 de Freesound con `fetch_audio.py --source freesound`; sin él se usa Openverse).
-- Índice completo de la documentación en [docs/Home.md](docs/Home.md).
+```bash
+python3 scripts/promo.py validar <proyecto>
+python3 scripts/promo.py voz     <proyecto>   # Fish por defecto, karaoke por palabra
+python3 scripts/promo.py audio   <proyecto>   # música procedural + SFX (+ voz) → mezcla.wav
+python3 scripts/promo.py todo    <proyecto>
+```
+
+</details>
+
+<details>
+<summary><b>🎙️ Voz en off, música y efectos</b></summary>
+
+```bash
+python3 scripts/lint_voz.py --guion guion.txt          # antes de pagar el TTS: cifras, preguntas, dos puntos, marcas
+python3 scripts/narrar.py proyectos/<p>                # una toma por escena, tiempos medidos y .srt
+python3 scripts/verificar_voz.py --guion guion.txt --wav-dir proyectos/<p>/recursos
+python3 scripts/fetch_audio.py "whoosh transition" -n 6 --profile sfx   # solo CC0 (Openverse / Freesound)
+```
+
+- **Voz por defecto:** `config.json > voz_default` (Gemini TTS). Cada copia puede cambiarla en `config.local.json`.
+- **Clonación:** la muestra va en `muestras/`, que nunca se sube a git.
+- **Por qué hay lint y verificación:** a veces los modelos «contestan» el guion en vez de leerlo. El lint lo frena antes
+  de gastar y la verificación compara contra el guion.
+- **Mezcla:** voz a −16 LUFS, música a −24 con ducking y máster a −14 LUFS / −1.5 dBTP. Se comprueba que la voz quede al
+  menos 9 dB por encima de la música.
+
+</details>
+
+<details>
+<summary><b>💬 Subtítulos y silencios</b></summary>
+
+```bash
+python3 scripts/subtitulos.py <video|audio> --quemar --glosario "ACME,HIKVISION,WhatsApp"
+python3 scripts/silencios.py <entrada> --reporte                              # simulacro
+python3 scripts/silencios.py <entrada> --proyecto proyectos/<slug>_<DDMMAAAA>
+```
+
+Los tiempos salen de pausas medidas o de faster-whisper, nunca de un LLM. Detalle en
+[Subtitulos-y-Silencios](docs/Subtitulos-y-Silencios.md).
+
+</details>
+
+<details>
+<summary><b>📱 Reels verticales narrados</b></summary>
+
+```bash
+python3 scripts/reel.py --spec proyectos/<slug>_<DDMMAAAA>/reel.json todo   # etapas | segmentos | ass | audio | video | verificar
+```
+
+Escenas con Ken Burns y `xfade`, rótulos ASS, voz a −15 LUFS y música procedural. Hay un ejemplo en
+`scripts/reel.ejemplo.json`.
+
+</details>
+
+<details>
+<summary><b>🌐 Doblar un video o traducir su texto incrustado</b></summary>
+
+```bash
+python3 scripts/doblar.py transcribir proyectos/<p>/recursos/origen/original.mp4 --proyecto proyectos/<p>
+python3 scripts/doblar.py unidades proyectos/<p>      # → doblaje.json; el agente traduce `es`
+python3 scripts/doblar.py todo proyectos/<p>/doblaje.json && python3 scripts/doblar.py verificar proyectos/<p>/doblaje.json
+
+python3 scripts/pantalla.py detectar <video> --json caps.json    # texto incrustado → editar la traducción
+python3 scripts/pantalla.py generar caps.json --render
+```
+
+</details>
+
+<details>
+<summary><b>🖼️ Imágenes: estilo de referencia, fotos libres y reemplazo de personaje</b></summary>
+
+```bash
+python3 scripts/imagen.py generar --prompt-archivo proyectos/<p>/recursos/prompt.md \
+    --referencia proyectos/<p>/recursos/referencia/ref.jpg --relacion 9:16 --salida proyectos/<p>/imagen.png
+python3 scripts/commons.py buscar consultas.json proyectos/<p>/recursos/busqueda   # Wikimedia, licencia verificada
+```
+
+Sustituir una mascota fija: `scripts/reemplazar_personaje.py rastrear | solape | reemplazar` (skill
+`reemplazar-personaje-video`).
+
+</details>
+
+<details>
+<summary><b>⚛️ Composiciones libres con Remotion</b></summary>
+
+```bash
+python3 scripts/remotion.py nuevo demo-producto --duracion 12
+python3 scripts/remotion.py validar demo-producto
+python3 scripts/remotion.py estudio demo-producto   # vista previa en http://localhost:3000
+python3 scripts/remotion.py render demo-producto    # h264 + acabado FFmpeg (BT.709, −14 LUFS, faststart)
+```
+
+Solo para motion graphics que `promo-ui` no puede expresar. Las piezas comunes (karaoke, titulares, curvas, fuentes)
+están en `remotion/src/componentes/` y `remotion/src/lib/`.
+
+</details>
+
+---
+
+## 💰 Costos de referencia (medidos)
+
+| Pieza | Costo | Notas |
+|---|---|---|
+| Elegir la skill (`enrutar.py`) | ~0.00003 USD | clasificador JEV |
+| Una imagen ilustrada | ~0.04 USD | Nano Banana 2.1, con hoja de estilo |
+| Video IA desde una imagen | ~0.026 USD/s | Seedance 1.5 Pro a 720p, sin audio |
+| Short ilustrado de 52 s, 8 tomas | **~0.85 USD** | imágenes + 2 clips héroe + voz; la firma de la casa cuesta 0 |
+| Voz de una lección de 4 min | ≤ 0.06 USD | caché por huella: rehacer no vuelve a pagar |
+
+Cada llamada queda registrada en `recursos/costos.jsonl` del proyecto. Los topes de gasto (`ilustrado.tope_usd_por_pieza`,
+`tope_usd_por_llamada`) exigen `--confirmar` para pasarse. Más en [Costos-y-Avance](docs/Costos-y-Avance.md).
+
+---
+
+## ⚙️ Configuración
+
+```
+config.json          fuente de verdad: modelos por tarea, herramientas, motores, topes, versión
+config.local.json    tus valores (gitignored), fusionados clave a clave: voz, sello del canal, licencia de Remotion…
+.env                 OPENROUTER_API_KEY (requerida) · ELEVENLABS_API_KEY · PEXELS/PIXABAY/UNSPLASH · FREESOUND_TOKEN (opcionales)
+```
+
+```
+media-agent-toolkit/
+├── AGENT.md · SKILL.md · CLAUDE.md · HERMES.md     contexto para agentes
+├── scripts/        motores y utilidades en Python (FFmpeg primero) + pruebas
+├── remotion/       composiciones React → MP4 (Ilustrado, Lección, Ejemplo…)
+├── promo/          motor promo (HTML → cuadros)
+├── assets/         recursos de la casa (hoja de estilo, música)
+├── docs/           motores, metodología y bitácoras de lecciones
+└── proyectos/      tu trabajo (vacío en git; nunca se respalda)
+```
+
+Índice completo de la documentación: [docs/Home.md](docs/Home.md).
+
+---
 
 ## Licencia
 
-Ver [LICENSE](LICENSE).
+Ver [LICENSE](LICENSE). La música y las imágenes de terceros se usan solo de fuentes libres de derechos
+([música](docs/Musica-Libre-de-Derechos.md), [imágenes](docs/Imagenes-Libres-de-Derechos.md), [audio CC0](docs/Audio-CC0.md)).
