@@ -32,6 +32,7 @@ import re
 import sys
 import time
 import urllib.error
+import urllib.parse
 import urllib.request
 
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
@@ -128,13 +129,30 @@ def elegir_duracion(m, pedida):
 
 
 # ---------------------------------------------------------------- HTTP con key
+class _SinKeyFueraDeOpenRouter(urllib.request.HTTPRedirectHandler):
+    """urllib reenvía los encabezados al seguir una redirección: si el destino no es openrouter.ai (p. ej. un
+    almacenamiento firmado), se quita la key para que nunca salga del dominio."""
+
+    def redirect_request(self, req, fp, code, msg, headers, newurl):
+        nueva = super().redirect_request(req, fp, code, msg, headers, newurl)
+        if nueva is not None and urllib.parse.urlsplit(newurl).hostname != "openrouter.ai":
+            for h in list(nueva.headers):
+                if h.lower() == "authorization":
+                    del nueva.headers[h]
+            nueva.unredirected_hdrs.pop("Authorization", None)
+        return nueva
+
+
+_ABRIR = urllib.request.build_opener(_SinKeyFueraDeOpenRouter).open
+
+
 def _req(metodo, ruta, key, cuerpo=None, timeout=60):
     url = ruta if ruta.startswith("https://openrouter.ai/") else URL + ruta
     datos = json.dumps(cuerpo).encode() if cuerpo is not None else None
     req = urllib.request.Request(url, data=datos, method=metodo,
                                  headers={"Authorization": f"Bearer {key}", "Content-Type": "application/json",
                                           "X-Title": "media-agent-toolkit"})
-    with urllib.request.urlopen(req, timeout=timeout) as r:
+    with _ABRIR(req, timeout=timeout) as r:
         return json.load(r)
 
 
@@ -144,7 +162,7 @@ def _descargar(url, key, salida, timeout=300):
     req = urllib.request.Request(url, headers={"Authorization": f"Bearer {key}", "X-Title": "media-agent-toolkit"})
     os.makedirs(os.path.dirname(os.path.abspath(salida)), exist_ok=True)
     tmp = salida + ".part"
-    with urllib.request.urlopen(req, timeout=timeout) as r, open(tmp, "wb") as f:
+    with _ABRIR(req, timeout=timeout) as r, open(tmp, "wb") as f:
         while True:
             b = r.read(1 << 20)
             if not b:

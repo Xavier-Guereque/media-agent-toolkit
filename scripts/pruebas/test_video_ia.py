@@ -58,6 +58,17 @@ class PruebaPrecios(unittest.TestCase):
         self.assertFalse(c["provider"]["options"]["byteplus"]["watermark"])
         self.assertNotIn("frame_images", c)
 
+    def test_redireccion_fuera_de_openrouter_quita_la_key(self):
+        import email.message
+        import urllib.request
+        h = video_ia._SinKeyFueraDeOpenRouter()
+        req = urllib.request.Request("https://openrouter.ai/api/v1/videos/x/content",
+                                     headers={"Authorization": "Bearer secreto"})
+        fuera = h.redirect_request(req, None, 302, "Found", email.message.Message(), "https://storage.example.com/v.mp4")
+        self.assertNotIn("authorization", {k.lower() for k in dict(fuera.header_items())})
+        dentro = h.redirect_request(req, None, 302, "Found", email.message.Message(), "https://openrouter.ai/api/v1/otra")
+        self.assertIn("authorization", {k.lower() for k in dict(dentro.header_items())})
+
     def test_descarga_solo_a_openrouter(self):
         with self.assertRaises(ValueError):
             video_ia._descargar("https://otro.sitio/v.mp4", "k", os.path.join(tempfile.gettempdir(), "x.mp4"))
