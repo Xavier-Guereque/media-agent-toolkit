@@ -4,6 +4,7 @@ fecha_modificacion: 2026-11-09
 estado: activo
 ---
 
+<!-- v1.11.0: explicador-ilustrado (scripts/ilustrar.py + composición BASE Ilustrado: hoja de estilo, imagen/parallax/clip/video_ia, titular cinético, hervor 12 fps, papel) y animar-imagen (scripts/video_ia.py: imagen a video por OpenRouter /videos, precios del catálogo, topes); modelos.video*/imagen_ilustrado y config ilustrado; Blender opcional; investigación en docs/Investigacion-2026-11-10-estilo-ilustrado -->
 <!-- v1.10.0: compatibilidad con Windows 11 (§3b): -/filter_complex en lugar de -filter_complex_script (eliminado en FFmpeg 8+), comun.pid_vivo/terminar_arbol/python_de_venv, UTF-8 en open() y subprocess, fuente de pantalla.py por plataforma, candado msvcrt en fetch_audio.py -->
 <!-- v1.9.0: piezas comunes promovidas a la base: scripts/componer.py (props, mezcla con ducking, specs por orientación), scripts/lienzo.py (lienzos PIL), scripts/curso_spec.py (constructores de curso.json), créditos en commons.py, y en Remotion componentes/Karaoke+Texto y lib/movimiento|fuentes|karaoke; karaoke ya no desaparece en las pausas; remotion.licencia pasa a config.local.json -->
 <!-- v1.8.0: cuestionario de arranque en crear-curso; curso.modo (propósito, evaluación, visual), test entre lecciones en el reproductor, actor imagen y voz_default/tema cine en la base -->
@@ -90,7 +91,7 @@ El toolkit se escribió en macOS, pero corre en Windows 11 (verificado 2026-11-1
 - Va por la Decisions API (`openrouter.endpoints.decisiones`, `POST /api/alpha/decisions`) con `state` + preguntas tipadas (`noul`/`choice`/`score`). **No funciona en `/chat/completions`.**
 - **Contrato verificado (2026-09-28; detalle y errores del servidor en `[[Lecciones-2026-09-28-reel-syscomexpo2027]]`):** `questions` es un **registro** `{"id": {...}}` (un array da `expected record`); cada pregunta lleva `type` (`noul`|`choice`|`score`) **y** `instructions` (string|registro|array); `score` exige `criteria` como **array** y `choice` como **registro** de opciones. La respuesta llega en `answers.<id>`: `noul` = probabilidad 0-1 de cumplimiento (leerla a ella, no `score`).
 - **Enrutar la petición antes de elegir skill:** `python3 scripts/enrutar.py "<petición del usuario>"`
-  (JEV `choice` sobre las rutas del toolkit: curso, promo_ui, remotion_video, reel_fotos, subtitulos, quitar_silencios, voz,
+  (JEV `choice` sobre las rutas del toolkit: curso, promo_ui, remotion_video, explicador_ilustrado, animar_imagen, reel_fotos, subtitulos, quitar_silencios, voz,
   imagen, traducir_pantalla, editar_video, musica_sfx) imprime la skill y los comandos siguientes; si la
   probabilidad es < 0.55 pide preguntarle al usuario entre las dos mejores. Es el primer paso
   recomendado para orquestadores baratos.
@@ -129,8 +130,17 @@ El toolkit se escribió en macOS, pero corre en Windows 11 (verificado 2026-11-1
   preflight: `uv tool install yt-dlp` / `brew install tesseract`). Diseño y gotchas en
   `[[Lecciones-2026-10-07-traduccion-texto-en-pantalla]]`.
 - **Crear una imagen, o un personaje nuevo en el estilo de una referencia:** `python3 scripts/imagen.py generar --prompt-archivo <prompt.md> [--referencia <img> …] [--relacion 9:16] --salida proyectos/<p>/<nombre>.png` (skill `crear-imagen` de `[[SKILL]]`). Las referencias viajan con el prompt; para corregir detalles se hace una segunda llamada con la imagen generada como referencia y "keep everything, change only…". Comprobar el saldo antes (§4).
+- **Explicador o historia con animación de estilo ilustrado (tinta, lápiz de color, papel):** `python3 scripts/ilustrar.py
+  nuevo|validar|estilo|voz|imagenes|capas|hoja|clips|render|todo <…>` (skill `explicador-ilustrado` de `[[SKILL]]`, motor en
+  `[[Motor-Ilustrado]]`). El agente **solo escribe `ilustrado.json`**: hoja de estilo fija → una ilustración por toma →
+  movimiento por toma del más barato al más caro (`imagen` cámara, `parallax` capas, `clip` propio/Blender, `video_ia`
+  solo en tomas héroe) → composición base `Ilustrado` de Remotion (titular cinético, hervor a 12 fps, papel). Revisar
+  `hoja` antes de `clips`; `clips` se niega a pasar del tope sin `--confirmar` (confirmar el gasto con el usuario).
+- **Animar una imagen fija / clip corto de IA (imagen a video):** `python3 scripts/video_ia.py modelos|estimar|generar|comparar`
+  (skill `animar-imagen`). Misma `OPENROUTER_API_KEY`; precios leídos de `/videos/models` en cada llamada. El video en
+  OpenRouter no admite Zero Data Retention: nada de fotos de personas sin permiso ni material de `muestras/`.
 - **Sustituir la mascota fija de un video por otro personaje:** `~/.venvs/imagen/bin/python scripts/reemplazar_personaje.py rastrear|solape|reemplazar …` (skill `reemplazar-personaje-video` de `[[SKILL]]`): rastreo por plantilla del asset original, métrica de solape para elegir escala, silueta pintada con el fondo y PNG con alfa compuesto cuadro a cuadro; después `doblar.py render` + `cortinillas` con un spec copia.
-- **Avatar parlante (foto + voz → video con labios sincronizados): no implementado.** Evaluado 2026-10-31 (LongCat-Video-Avatar 1.5: no cabe en 16 GB; en nube 0.04–0.08 USD/s con la foto y la voz saliendo de la máquina; OpenRouter no tiene modelos de video): leer `[[Lecciones-2026-10-31-remotion-y-longcat]]` antes de volver a evaluarlo.
+- **Avatar parlante (foto + voz → video con labios sincronizados): no implementado.** Evaluado 2026-10-31 (LongCat-Video-Avatar 1.5: no cabe en 16 GB; en nube 0.04–0.08 USD/s con la foto y la voz saliendo de la máquina). **Corrección 2026-11-10:** OpenRouter **sí** tiene generación de video desde abril de 2026 (`POST /api/v1/videos`, `scripts/video_ia.py`), aunque sin avatar con labios sincronizados en esta evaluación: leer `[[Lecciones-2026-10-31-remotion-y-longcat]]` antes de volver a evaluarlo.
 - **Doblar un video existente a otro idioma (voz + texto en pantalla):** `python3 scripts/doblar.py
   transcribir|unidades|voz|render|todo` (skill `doblar-video` de `[[SKILL]]`). La voz nueva se sintetiza
   **por unidad** y se ajusta al hueco de la original (duración objetivo / `atempo`), los captions se
@@ -143,6 +153,7 @@ El toolkit se escribió en macOS, pero corre en Windows 11 (verificado 2026-11-1
   del TTS) y `scripts/costo_sesion_hermes.py` (suma el costo de la sesión del agente al reporte).
 
 - Otras herramientas locales solo donde FFmpeg no llega: `faster-whisper` (transcripción) y `coqui-tts` / `f5-tts` (clonación local).
+- **Blender (opcional, ≥ 5.1)** para animaciones técnicas 3D a escala (`blender -b --factory-startup -P escena.py -- …`, Eevee): piezas, montajes, cortes. Entran como escena `screencast` de un curso o toma `clip` del motor ilustrado. Receta (cámara por azimut/elevación, rótulos que siempre caben, transparencia) en `[[Lecciones-2026-11-10-curso-drywall]]`. El MCP oficial de Blender sirve para inspeccionar; el render va por la CLI.
 - `auto-editor` y `deepfilternet` son alternativas opcionales, solo si están instaladas.
 - Nube: OpenRouter principal; ElevenLabs opcional (regla ElevenLabs, sección 5).
 
@@ -163,7 +174,11 @@ Cambiar un ID aquí cambia el comportamiento de todo el toolkit sin tocar docume
 |---|---|---|
 | `razonamiento` | `deepseek/deepseek-v4.1-flash` | Orquestación del toolkit: planificación, decisiones complejas, análisis (1M ctx; upgrade de calidad: `deepseek/deepseek-v4-pro`) |
 | `rapido` | `google/gemini-2.5-flash` | Tareas ligeras, respuestas rápidas |
-| `imagen` | `google/gemini-2.5-flash-image` | `crear-imagen` |
+| `imagen` | `google/gemini-2.5-flash-image` | `crear-imagen` (deprecado por Google: apagado 2027-03-15) |
+| `imagen_ilustrado` | `google/gemini-nano-banana-2.1` | Motor ilustrado: ilustraciones con hoja de estilo (hasta 14 referencias, ~0.04 USD) |
+| `video` | `bytedance/seedance-1-5-pro` | Imagen a video (`video_ia.py`, tomas `video_ia`): ~0.026 USD/s a 720p sin audio, primer + último cuadro |
+| `video_respaldo` | `google/veo-3.1-lite` | Respaldo de `video` (0.03 USD/s a 720p sin audio; duraciones 4/6/8 s) |
+| `video_premium` | `kwaivgi/kling-v3.0-pro` | Tomas premium (0.112 USD/s, 720p) |
 | `vision` | `google/gemini-2.5-flash` | "Ver" video, subtítulos con comprensión de frame |
 | `voz` | `openai/gpt-audio-mini` | `crear-audio` (TTS) |
 | `voz_tts` | `fish-audio/s2-pro` | voz en off del motor promo (TTS puro por `/audio/speech`: lee al pie de la letra; verificado 2026-09-28) |
@@ -225,6 +240,11 @@ Cambiar un ID aquí cambia el comportamiento de todo el toolkit sin tocar docume
 
 - `lufs`, topes (`max_min_leccion`, `ideal_min_leccion`, `max_s_escena`, `max_s_sin_pregunta`, `max_puntos`, `max_palabras_*`), pausas, `subtitulos`, `temas`, `bloom` (verbos por nivel), `acreditacion`, `jev.umbral`, `aviso_ia` y `costo_voz_usd_min`. Cada valor viene de `[[Metodologia-Cursos-Video]]`; detalle en `[[Motor-Curso]]`.
 
+### `ilustrado` (motor ilustrado y `video_ia.py`)
+
+- `usd_imagen` (estimación por imagen), `tope_usd_por_pieza` (clips sin `--confirmar`), `tope_usd_por_llamada` (`video_ia.py generar`), `video_resolucion` / `video_borrador`, `video_audio` (false: la voz la pone el toolkit), `sondeo_s`, `espera_max_s`, `textura`, `hervor`, `fps_animacion`, `fundido`. Detalle en `[[Motor-Ilustrado]]`.
+- `openrouter.endpoints.video` / `video_modelos`: `/videos` y `/videos/models`.
+
 ### `remotion` (motor opcional de composiciones libres)
 
 - `fps`, `crf`, `x264_preset`: codec del render de `scripts/remotion.py` (mismos valores que `promo`); `concurrencia`: `null` = automática (mitad de los hilos), `N` o `"50%"`.
@@ -279,7 +299,10 @@ flowchart TD
     CU -- No --> PU{¿Video promo con UI animada?}
     PU -- Sí --> PM[Motor promo: promo.json + promo.py validar/cuadros/todo]
     PM --> I
-    PU -- No --> B{¿La resuelve FFmpeg?}
+    PU -- No --> IL{¿Explicador con estilo ilustrado?}
+    IL -- Sí --> IM[Motor ilustrado: ilustrado.json + ilustrar.py estilo/voz/imagenes/capas/hoja/clips/render]
+    IM --> I
+    IL -- No --> B{¿La resuelve FFmpeg?}
     B -- Sí --> C[Ejecutar FFmpeg local]
     B -- No --> RM{¿Motion graphics libre que promo no expresa?}
     RM -- Sí --> RE[Remotion: remotion.json + TSX → remotion.py render → acabado FFmpeg]
@@ -383,4 +406,5 @@ Este repo lo descargan varias personas. Las mejoras o correcciones que pida **ca
 - `[[Costos-y-Avance]]` — reporte de costos y avance de render
 - `[[Preferencias-Usuario]]` — preferencias locales no versionadas (gitignored; sección 16)
 - `[[Lecciones-2026-09-28-motor-promo]]` — bitácora técnica (motor promo: E2E con orquestador barato, lockup blindado, determinismo por píxeles, x264 cuello de botella, BT.709, glifos)
+- `[[Lecciones-2026-11-10-curso-drywall]]` — bitácora técnica (curso a partir de 13 h de material de referencia: transcripción en lote por OpenRouter, fichas JSON por video, plan de estudios de 49 lecciones, lección muestra con diagramas a escala dibujados con PIL; `curso.py qa` en clones limpios)
 - `[[Lecciones-2026-11-10-compatibilidad-windows]]` — bitácora técnica (el toolkit en Windows 11: winget, `-filter_complex_script` eliminado en FFmpeg 8+, `os.kill(pid, 0)` que mata en Windows, UTF-8 en `open()`/`subprocess`, fuentes y venvs por plataforma, candado con `msvcrt`)

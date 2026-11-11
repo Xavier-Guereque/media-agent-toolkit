@@ -137,6 +137,8 @@ async function cmdRender(o) {
       crf: borrador ? 28 : Number(o.crf || 17),
       x264Preset: borrador ? 'veryfast' : (o['x264-preset'] || 'slow'),
       pixelFormat: 'yuv420p',
+      // Sin esto, en Windows los cuadros JPEG llegan como yuvj420p (rango completo, BT.601) y el check de color falla.
+      colorSpace: 'bt709',
       audioCodec: 'aac',
       imageFormat: 'jpeg',
       jpegQuality: borrador ? 70 : 95,

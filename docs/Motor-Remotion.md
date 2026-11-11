@@ -7,6 +7,9 @@ estado: activo
 # Motor Remotion — composiciones libres (React → MP4), motor opcional
 
 > Skill de uso: `remotion-video` en [[SKILL]]. Reglas generales en [[AGENT]] §6. Bitácora: [[Lecciones-2026-10-31-remotion-y-longcat]].
+>
+> Composiciones BASE (versionadas, sin TSX por proyecto): `Ejemplo`, `Leccion` (motor de cursos, [[Motor-Curso]]) e
+> `Ilustrado` (motor ilustrado, [[Motor-Ilustrado]]). Los motores escriben `remotion.json` y llaman a `remotion.etapa_render`.
 
 ## Por qué existe (y cuándo no usarlo)
 

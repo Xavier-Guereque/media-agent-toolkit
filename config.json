@@ -1,6 +1,6 @@
 {
-  "version": "1.7.0",
-  "construccion": "01112026",
+  "version": "1.11.0",
+  "construccion": "10112026",
   "actualizacion": {
     "auto_pull": false
   },
@@ -10,7 +10,9 @@
     "endpoints": {
       "chat": "/chat/completions",
       "voz": "/chat/completions",
-      "decisiones": "https://openrouter.ai/api/alpha/decisions"
+      "decisiones": "https://openrouter.ai/api/alpha/decisions",
+      "video": "/videos",
+      "video_modelos": "/videos/models"
     }
   },
   "elevenlabs": {
@@ -28,7 +30,11 @@
     "voz_clonada": "fish-audio/s2-pro",
     "guion": "google/gemini-2.5-pro",
     "prompts": "google/gemini-2.5-flash",
-    "decisiones": "typesafe/jev-1.13"
+    "decisiones": "typesafe/jev-1.13",
+    "imagen_ilustrado": "google/gemini-nano-banana-2.1",
+    "video": "bytedance/seedance-1-5-pro",
+    "video_respaldo": "google/veo-3.1-lite",
+    "video_premium": "kwaivgi/kling-v3.0-pro"
   },
   "herramientas": {
     "cortar_video": {
@@ -136,6 +142,17 @@
     "convertir_formato": {
       "tipo": "local",
       "comando": "ffmpeg"
+    },
+    "animar_imagen": {
+      "tipo": "modelo",
+      "clave_modelo": "video",
+      "comando": "python3 scripts/video_ia.py modelos|estimar|generar|comparar …",
+      "nota": "imagen a video por OpenRouter (POST /videos, misma OPENROUTER_API_KEY); precios leídos de /videos/models; tope por llamada sin --confirmar (skill animar-imagen)"
+    },
+    "explicador_ilustrado": {
+      "tipo": "local",
+      "comando": "python3 scripts/ilustrar.py nuevo <slug> | validar | estilo | voz | imagenes | capas | clips | hoja | render | todo <proyecto>",
+      "nota": "explicador con estilo ilustrado: hoja de estilo + imagen/parallax/clip/video_ia por toma + hervor 12 fps y papel en Remotion (composición base Ilustrado; skill explicador-ilustrado)"
     }
   },
   "transiciones": {
@@ -211,7 +228,8 @@
       "yt-dlp": "uv tool install yt-dlp (o brew install yt-dlp)",
       "tesseract": "brew install tesseract",
       "voicestudio": "curl -fsSL https://voicestudio.sh/install | sh  (TTS/clonación local OmniVoice, CC-BY-NC; app en /Applications, backend 127.0.0.1:3900; ver docs/Lecciones-2026-09-30-voicestudio-mcp)",
-      "remotion-deps": "npm ci --prefix remotion && npx --prefix remotion remotion browser ensure"
+      "remotion-deps": "npm ci --prefix remotion && npx --prefix remotion remotion browser ensure",
+      "blender": "winget install --id BlenderFoundation.Blender -e  (o brew install --cask blender); ≥ 5.1, CLI headless para animaciones técnicas 3D (ver docs/Lecciones-2026-11-10-curso-drywall)"
     }
   },
   "musica_libre": {
@@ -320,6 +338,21 @@
     "x264_preset": "slow",
     "concurrencia": null,
     "licencia": null
+  },
+  "ilustrado": {
+    "usd_imagen": 0.04,
+    "tope_usd_por_pieza": 5.0,
+    "tope_usd_por_llamada": 1.0,
+    "video_resolucion": "720p",
+    "video_borrador": "480p",
+    "video_audio": false,
+    "sondeo_s": 20,
+    "espera_max_s": 1200,
+    "textura": 0.35,
+    "hervor": 2.2,
+    "fps_animacion": 12,
+    "fundido": 0.25,
+    "nota": "motor ilustrado (scripts/ilustrar.py) y video_ia.py; detalle en docs/Motor-Ilustrado.md"
   },
   "voz_default": {
     "proveedor": "speech",

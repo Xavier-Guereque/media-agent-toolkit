@@ -6,6 +6,8 @@ estado: activo
 
 # Lecciones — Remotion como segundo motor opcional; LongCat-Video-Avatar evaluado (2026-10-31)
 
+> **Aviso 2026-11-10:** lo de «OpenRouter no tiene modelos de video» ya no es cierto: desde abril de 2026 expone `POST /api/v1/videos` (33 modelos). Ver [[Motor-Ilustrado]] y [[Investigacion-2026-11-10-estilo-ilustrado]]. El resto de la bitácora se conserva como estaba.
+
 **Pedido:** revisar si dos repos vistos en redes se pueden agregar a las herramientas del toolkit: **LongCat-Video-Avatar
 1.5** (Meituan; foto + audio → avatar que habla, pesos MIT) y **Remotion** (video programático con React, skills oficiales
 para agentes). Decisión con Xavier tras la investigación: **Remotion sí, como motor opcional + skills; LongCat no**

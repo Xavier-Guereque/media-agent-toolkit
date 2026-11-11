@@ -900,6 +900,7 @@ def _stills(c, lec, lid):
         props = json.load(f)
     carpeta = os.path.join(c.interno, "qa", lid)
     os.makedirs(carpeta, exist_ok=True)
+    remotion.generar_registro()  # en un clon limpio registro.ts no existe y el empaquetado de `still` falla
     node = comun.buscar_node(REPO)
     cli = os.path.join(remotion.dir_motor(), "node_modules", "@remotion", "cli", "remotion-cli.js")
     fps = props["fps"]

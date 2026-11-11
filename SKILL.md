@@ -244,7 +244,7 @@ estado: activo
 - **Entradas:** prompt (puede mejorarse con `modelos.prompts`), formato y tamaño.
 - **Salidas:** imagen (según `salida.formatos_imagen`).
 - **Herramienta local:** Stable Diffusion (ComfyUI / A1111) si está instalada.
-- **Modelo principal:** `modelos.imagen` (`google/gemini-2.5-flash-image`) vía OpenRouter.
+- **Modelo principal:** `modelos.imagen` (`google/gemini-2.5-flash-image`) vía OpenRouter. Para series con estilo fijo (motor ilustrado) se usa `modelos.imagen_ilustrado` (`google/gemini-nano-banana-2.1`, hasta 14 referencias, ~0.04 USD).
 - **Script (2026-10-30):** `python3 scripts/imagen.py generar --prompt-archivo <prompt.md> [--referencia <img> …] [--relacion 9:16] --salida proyectos/<p>/<nombre>.png`. Las referencias viajan como `image_url` en el mismo mensaje que el prompt: sirven para "misma composición y estilo, otro personaje" sin img2img aparte. Registra `recursos/costos.jsonl` (pide `usage.include` para recibir `usage.cost`) y reporta la etapa `imagen` al tablero (`[[SKILL#tablero-avance]]`). Códigos de salida 0/2/3/4 como `doblar.py`. Verificado 2026-10-30: 14 llamadas en un proyecto (12 × `gemini-2.5-flash-image` a 0.039 USD y ~8 s, 768×1344 con `--relacion 9:16`; 1 × `gemini-3-pro-image` a 0.14 USD, 768×1376; 1 × `gemini-nano-banana-2.1` a 0.04 USD, JPEG), 0.65 USD en total; `image_config.aspect_ratio` funciona en OpenRouter.
 - **Personaje nuevo en el estilo de una ilustración de referencia (verificado 2026-10-30, ver `[[Lecciones-2026-10-30-personaje-spock]]`):** receta en tres llamadas.
   1. **Generar** con la referencia adjunta y un prompt que la acote: "use the attached illustration ONLY as a reference for art style, proportions and composition … do NOT reproduce that character" + descripción del personaje nuevo + composición (cuerpo entero, fondo uniforme, sin texto). Pedir en esta llamada **todo lo que no se puede corregir después** (gestos de manos, pose) y **prohibir logos de marca** ("generic laptop with NO brand logo"): sin eso el modelo puso un logo de Apple en la laptop. Los matices se exageran: "very faint green undertone" dio piel verde; hay que decir "must NOT look green".
@@ -485,6 +485,43 @@ estado: activo
   - **TSX** — `remotion/src/componentes/Karaoke.tsx` (subtítulo karaoke por oración con tiempos medidos; en las pausas se queda la oración que acaba de sonar), `componentes/Texto.tsx` (`Titular` con palabras entre `*asteriscos*` resaltadas y entrada palabra por palabra; `Apoyo`), `lib/movimiento.ts` (`muelle`, `soltar`, `entra`, `desliza`), `lib/fuentes.ts` (Sora y Figtree empaquetadas: `FUENTE`, `FUENTE_UI`) y `lib/karaoke.ts` (lógica pura: `frases`, `palabraActiva`, `segmentos`). Colores, tamaños y márgenes son props: el TSX del proyecto solo diseña sus escenas.
   - **Python** — el `recursos/componer.py` del proyecto importa `scripts/componer.py`: `escenas_props` (props por escena con palabras relativas a su inicio), `encadenar_tomas` (duraciones desde tomas grabadas sin `tiempos.json`), `cama_procedural` / `cama_ambiental`, `mezclar` (voz −15 LUFS, música −18 con ducking, SFX encima), `recortar_clip`, `logo_con_color` y `escribir_specs` (un `remotion.<orientación>.json` por salida + `remotion.json`).
 - **Detalle técnico:** `[[Motor-Remotion]]`.
+
+## explicador-ilustrado (historia o divulgación con animación de estilo ilustrado; el agente solo escribe ilustrado.json)
+
+- **Cuándo:** explicadores narrados con look de ilustración a mano (tinta irregular, color plano con lápiz, papel), tipo
+  Shorts de historia: cámara que recorre la ilustración, algún objeto que cobra vida, titulares cinéticos. Si es un curso
+  con evaluación → `crear-curso`; si es UI de producto → `promo-ui`.
+- **Cuestionario (una ronda, AGENT §2):** tema y fuente de los hechos; orientación (9:16 Short o 16:9); duración (Short ≤ 60 s
+  ≈ 8–12 tomas de 4–7 s); estilo (tinta + lápiz por defecto, o la referencia del usuario: **propia**, nunca fotogramas de
+  otro canal); cuántas tomas «héroe» con IA de video (0–3) y presupuesto; voz (`voz_default`) y música (`ambiental`).
+- **Qué escribes tú:** `proyectos/<slug>_<DDMMAAAA>/ilustrado.json` (contrato en `[[Motor-Ilustrado]]`): `estilo.prompt`
+  (≥ 12 palabras: trazo, relleno, papel, paleta, época) y por toma `tts`, `imagen` (encuadre, sujeto y acción **sin texto**),
+  `movimiento` (`imagen` | `parallax` + `capas.sujeto` | `clip` | `video_ia` + `video.prompt` solo de movimiento), `camara`
+  y `titulo` (≤ 34 caracteres). Los hechos se verifican antes de narrar: los modelos inventan vestuario y objetos de época.
+- **Comandos:** `python3 scripts/ilustrar.py nuevo <slug> [--orientacion vertical]` → `validar` (lints + costo estimado) →
+  `estilo` (revisar `recursos/estilo/ref_1.png`) → `voz` → `imagenes` → `capas` → `hoja` (**revisar con los ojos antes de
+  pagar video**; `--rehacer t3,t5` repite tomas) → `clips [--confirmar]` → `render [--borrador]`. `todo` encadena todo.
+- **Reglas:** el texto nunca va dentro de la imagen (lo pone el titular); `parallax` nombra **solo** el sujeto ("the man
+  only, not the workbench"); la hoja de estilo debe ir a sangre completa (su composición se hereda); clips solo donde el
+  movimiento aporta (agua, fuego, mecanismos, multitudes); anunciar el costo antes de `clips --confirmar`.
+- **Costo de referencia (2026-11-10, 52.6 s, 8 tomas):** ~0.5 USD de imágenes, 0.21 USD por un clip Seedance de 8 s,
+  voz < 0.05 USD; ~0.9 USD por Short con dos tomas héroe. Bitácora en `[[Lecciones-2026-11-10-estilo-ilustrado]]`.
+- **Detalle técnico:** `[[Motor-Ilustrado]]`. Investigación (precios, MCPs, alternativas): `[[Investigacion-2026-11-10-estilo-ilustrado]]`.
+
+## animar-imagen (imagen a video con IA por OpenRouter)
+
+- **Cuándo:** dar movimiento a una imagen fija o generar un clip corto (4–15 s) sin armar un video completo; también para
+  elegir modelo antes de una producción.
+- **Comandos:** `python3 scripts/video_ia.py modelos --i2v --relacion 9:16` (catálogo con USD/s leído al momento) →
+  `estimar --duracion 5 [--modelo id]` → `generar --primer-cuadro a.png [--ultimo-cuadro b.png] --prompt "slow dolly-in…"
+  --duracion 5 --relacion 9:16 [--borrador] --salida proyectos/<p>/recursos/clips/x.mp4`. `comparar --modelos a,b,c` corre
+  el mismo cuadro en varios modelos en paralelo (prueba de ~1.4 USD con 5 modelos).
+- **Prompt:** describir **solo el movimiento** (cámara y acción) y pedir conservar el estilo ("keep the hand-drawn look…
+  no photorealism, no text"); el primer + último cuadro es el control de cámara más fiable.
+- **Modelos (2026-11-10):** `modelos.video` = Seedance 1.5 Pro (~0.026 USD/s a 720p, el mejor precio con buen resultado),
+  `video_respaldo` = Veo 3.1 Lite (0.03 USD/s), `video_premium` = Kling 3.0 Pro (0.112 USD/s). Sin audio por defecto.
+- **Topes:** sin `--confirmar` no gasta más de `ilustrado.tope_usd_por_llamada`. Privacidad: el video de OpenRouter no
+  admite Zero Data Retention; nunca fotos de personas sin permiso ni `muestras/`.
 
 ## descargar-video-youtube
 

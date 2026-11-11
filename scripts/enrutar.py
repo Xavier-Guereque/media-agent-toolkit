@@ -46,6 +46,22 @@ RUTAS = {
                   "editar remotion.json y el TSX (skills /remotion-markup) → python3 scripts/remotion.py validar <proyecto>",
                   "python3 scripts/remotion.py render <proyecto>"],
     },
+    "explicador_ilustrado": {
+        "desc": "Video explicativo o de historia con animación de estilo ilustrado (dibujo a tinta, lápiz de color, "
+                "papel): ilustraciones generadas con un estilo fijo, cámara con parallax y algunas tomas animadas "
+                "con IA de imagen a video, titulares cinéticos y narración.",
+        "skill": "explicador-ilustrado",
+        "pasos": ["python3 scripts/ilustrar.py nuevo <slug>",
+                  "editar ilustrado.json → python3 scripts/ilustrar.py validar <proyecto>",
+                  "python3 scripts/ilustrar.py estilo|voz|imagenes|capas|hoja <proyecto> (revisar la hoja)",
+                  "python3 scripts/ilustrar.py clips <proyecto> --confirmar && python3 scripts/ilustrar.py render <proyecto>"],
+    },
+    "animar_imagen": {
+        "desc": "Animar una imagen fija o generar un clip corto de video con IA (imagen a video), sin armar un video completo.",
+        "skill": "animar-imagen",
+        "pasos": ["python3 scripts/video_ia.py modelos --i2v", "python3 scripts/video_ia.py estimar --duracion 5",
+                  "python3 scripts/video_ia.py generar --primer-cuadro <img> --prompt \"…\" --duracion 5 --salida <mp4>"],
+    },
     "reel_fotos": {
         "desc": "Reel vertical narrado hecho con fotos o imágenes (Ken Burns, mosaicos, logos), con voz y música.",
         "skill": "armar-reel",

@@ -43,6 +43,7 @@ zsh scripts/preflight.sh
 | `tesseract` | `command -v tesseract` | `brew install tesseract` |
 | `voicestudio` | `command -v voicestudio` (app local; backend en `127.0.0.1:3900`) | `curl -fsSL https://voicestudio.sh/install \| sh` — ver [[Lecciones-2026-09-30-voicestudio-mcp]] |
 | `remotion-deps` | `remotion/node_modules/@remotion/cli` **y** `remotion/node_modules/.remotion/chrome-headless-shell` existen (Remotion guarda ahí su navegador) | `npm ci --prefix remotion && npx --prefix remotion remotion browser ensure` (~850 MB, ~20 s; motor opcional de [[Motor-Remotion]]) |
+| `blender` | `blender --version` ≥ 5.1 (en Windows: `C:\Program Files\Blender Foundation\Blender 5.x\blender.exe`) | `winget install --id BlenderFoundation.Blender -e` / `brew install --cask blender` (opcional: animaciones técnicas 3D, [[Lecciones-2026-11-10-curso-drywall]]) |
 
 ## Salida de ejemplo
 

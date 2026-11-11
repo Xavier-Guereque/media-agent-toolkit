@@ -288,7 +288,7 @@ class TestRemotion(unittest.TestCase):
             m1 = os.path.getmtime(ruta)
             remotion.generar_registro()                          # sin cambios: no reescribe
             self.assertEqual(os.path.getmtime(ruta), m1)
-            self.assertEqual(remotion.ids_base(), ["Ejemplo", "Leccion"])
+            self.assertEqual(remotion.ids_base(), ["Ejemplo", "Leccion", "Ilustrado"])
 
     def test_registro_vacio_del_motor_coincide_con_python(self):
         """motor.mjs crea registro.ts si falta (clon limpio): debe ser idéntico al de generar_registro() sin TSX."""
