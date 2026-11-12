@@ -1,9 +1,10 @@
 ---
 tags: [agente, contexto, media-toolkit]
-fecha_modificacion: 2026-11-09
+fecha_modificacion: 2026-11-11
 estado: activo
 ---
 
+<!-- v1.13.0: animación 3D de cursos — estilo de la casa a todo color (scripts/blender_estilo.py: paleta caricatura, contorno de casco invertido, luz frontal, rótulos ≥ 60 px) y lint de anclas W() antes del render (scripts/lint_w3d.py); bitácoras docs/Lecciones-2026-11-11-drywall-vanos-animado y docs/Lecciones-2026-11-11-drywall-refuerzos-rack -->
 <!-- v1.12.0: firma de la casa en el motor ilustrado — estilo_casa (sepia + un acento, hoja canónica en assets/imagenes/ilustrado), entrada «entintado» (scripts/entintado.py), transición «mancha», anotaciones a mano, *acento* en titulares, sello de cierre y SFX procedurales de lápiz/sello; bitácora en docs/Lecciones-2026-11-11-firma-ilustrada -->
 <!-- v1.11.0: explicador-ilustrado (scripts/ilustrar.py + composición BASE Ilustrado: hoja de estilo, imagen/parallax/clip/video_ia, titular cinético, hervor 12 fps, papel) y animar-imagen (scripts/video_ia.py: imagen a video por OpenRouter /videos, precios del catálogo, topes); modelos.video*/imagen_ilustrado y config ilustrado; Blender opcional; investigación en docs/Investigacion-2026-11-10-estilo-ilustrado -->
 <!-- v1.10.0: compatibilidad con Windows 11 (§3b): -/filter_complex en lugar de -filter_complex_script (eliminado en FFmpeg 8+), comun.pid_vivo/terminar_arbol/python_de_venv, UTF-8 en open() y subprocess, fuente de pantalla.py por plataforma, candado msvcrt en fetch_audio.py -->
@@ -156,7 +157,7 @@ El toolkit se escribió en macOS, pero corre en Windows 11 (verificado 2026-11-1
   del TTS) y `scripts/costo_sesion_hermes.py` (suma el costo de la sesión del agente al reporte).
 
 - Otras herramientas locales solo donde FFmpeg no llega: `faster-whisper` (transcripción) y `coqui-tts` / `f5-tts` (clonación local).
-- **Blender (opcional, ≥ 5.1)** para animaciones técnicas 3D a escala (`blender -b --factory-startup -P escena.py -- …`, Eevee): piezas, montajes, cortes. Entran como escena `screencast` de un curso o toma `clip` del motor ilustrado. Receta (cámara por azimut/elevación, rótulos que siempre caben, transparencia) en `[[Lecciones-2026-11-10-curso-drywall]]`. El MCP oficial de Blender sirve para inspeccionar; el render va por la CLI.
+- **Blender (opcional, ≥ 5.1)** para animaciones técnicas 3D a escala (`blender -b --factory-startup -P escena.py -- …`, Eevee): piezas, montajes, cortes. Entran como escena `screencast` de un curso o toma `clip` del motor ilustrado. Receta (cámara por azimut/elevación, rótulos que siempre caben, transparencia) en `[[Lecciones-2026-11-10-curso-drywall]]`; animación con vida (tiempos por palabra `W()`, rebote, cotas que se dibujan, atornillador, nivel) en `[[Lecciones-2026-11-11-drywall-vanos-animado]]`. **Estilo obligatorio: a todo color, tipo caricatura** — nunca piezas grises «sin chiste»: `scripts/blender_estilo.py` (`PALETA` antes de crear materiales y `caricatura(sc)` antes de renderizar: cielo, piso de color, luz frontal y contorno de casco invertido; Freestyle no, es lento y se cuelga). Rótulos de ≥ 60 px en pantalla. **Antes de un render largo**: `python3 scripts/lint_w3d.py escenas.py lecciones/<id>/recursos/tiempos.json` (anclas inexistentes, repetidas, numéricas o con `hasta` antes de aparecer) y hojas de contacto a 50 % con 12 muestras. Ejemplo completo en `[[Lecciones-2026-11-11-drywall-refuerzos-rack]]`. El MCP oficial de Blender sirve para inspeccionar; el render va por la CLI.
 - `auto-editor` y `deepfilternet` son alternativas opcionales, solo si están instaladas.
 - Nube: OpenRouter principal; ElevenLabs opcional (regla ElevenLabs, sección 5).
 
@@ -410,4 +411,6 @@ Este repo lo descargan varias personas. Las mejoras o correcciones que pida **ca
 - `[[Preferencias-Usuario]]` — preferencias locales no versionadas (gitignored; sección 16)
 - `[[Lecciones-2026-09-28-motor-promo]]` — bitácora técnica (motor promo: E2E con orquestador barato, lockup blindado, determinismo por píxeles, x264 cuello de botella, BT.709, glifos)
 - `[[Lecciones-2026-11-10-curso-drywall]]` — bitácora técnica (curso a partir de 13 h de material de referencia: transcripción en lote por OpenRouter, fichas JSON por video, plan de estudios de 49 lecciones, lección muestra con diagramas a escala dibujados con PIL; `curso.py qa` en clones limpios)
+- `[[Lecciones-2026-11-11-drywall-vanos-animado]]` — bitácora técnica (lección de vanos con animación 3D mejorada: tiempos por palabra, rebote, cotas que se dibujan, atornillador y nivel animados, alzado ortográfico del mismo modelo; gotchas de Blender 5 y de palabras repetidas)
+- `[[Lecciones-2026-11-11-drywall-refuerzos-rack]]` — bitácora técnica (lección de refuerzos para cargas en 3D **a todo color**: estilo caricatura con contorno de casco invertido, lint de `W()` antes del render, rótulos más grandes, ventana transparente solo donde está el refuerzo, tele que se cae en el gancho)
 - `[[Lecciones-2026-11-10-compatibilidad-windows]]` — bitácora técnica (el toolkit en Windows 11: winget, `-filter_complex_script` eliminado en FFmpeg 8+, `os.kill(pid, 0)` que mata en Windows, UTF-8 en `open()`/`subprocess`, fuentes y venvs por plataforma, candado con `msvcrt`)

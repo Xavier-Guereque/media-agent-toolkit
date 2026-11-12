@@ -149,6 +149,19 @@ Humo sin costo: `PROMO_TTS_STUB=1 python3 scripts/curso.py todo <proyecto> --bor
 - `tiempos.json` y el `.srt` dependen de la voz: cambiarla regenera las tomas y hay que recomponer.
 - La revisión humana de subtítulos y contenido no se automatiza.
 
+## Animaciones 3D (Blender)
+
+Una escena `screencast` puede llevar un clip propio hecho en Blender (`"pantalla": {"clip": "clips/<lección>/<escena>.mp4"}`).
+Flujo probado en las lecciones de drywall:
+
+1. Guion con **palabras ancla únicas** por acción y sin anclas numéricas (Whisper desordena los números).
+2. Clips marcadores de 1 s en negro (FFmpeg) → `validar` → `voz` → `lecciones/<id>/recursos/tiempos.json`.
+3. Escenas con `W("palabra", n)` para cada aparición, rebote y cotas que se dibujan
+   (`[[Lecciones-2026-11-11-drywall-vanos-animado]]`).
+4. **Estilo a todo color**: `scripts/blender_estilo.py` (`PALETA` + `caricatura(sc)`); rótulos ≥ 60 px.
+5. `python3 scripts/lint_w3d.py escenas.py lecciones/<id>/recursos/tiempos.json` y hojas de contacto a 50 % / 12 muestras.
+6. Render 1080p con 20 muestras en segundo plano (~2 s por cuadro en un i7 de laptop), luego `componer`, `qa`, `render`.
+
 ## Enlaces
 
-[[AGENT]] · [[SKILL]] · [[Metodologia-Cursos-Video]] · [[Motor-Remotion]] · [[Lecciones-2026-11-01-metodologia-cursos]] · [[Lecciones-2026-11-01-cursos-mundo-continuo]] · [[Lecciones-2026-11-01-cuestionario-cursos]]
+[[AGENT]] · [[SKILL]] · [[Metodologia-Cursos-Video]] · [[Motor-Remotion]] · [[Lecciones-2026-11-01-metodologia-cursos]] · [[Lecciones-2026-11-01-cursos-mundo-continuo]] · [[Lecciones-2026-11-01-cuestionario-cursos]] · [[Lecciones-2026-11-11-drywall-refuerzos-rack]]

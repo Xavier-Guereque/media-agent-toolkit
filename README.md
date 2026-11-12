@@ -147,7 +147,7 @@ Windows; las notas están en [Lecciones-2026-11-10-compatibilidad-windows](docs/
 - **Remotion** (cursos, ilustrado, composiciones libres): `npm ci --prefix remotion && npx --prefix remotion remotion browser ensure`
   (~850 MB). Licencia: gratis para personas, ONG y empresas de hasta 3 personas; con 4 o más hace falta la
   [Company License](https://remotion.pro/license). Fíjala en `config.local.json` → `{"remotion": {"licencia": "gratuita"}}`.
-- **Blender ≥ 5.1** (opcional): animaciones técnicas 3D que entran como escena de un curso o toma `clip`.
+- **Blender ≥ 5.1** (opcional): animaciones técnicas 3D que entran como escena de un curso o toma `clip`, con el estilo de la casa a todo color (`scripts/blender_estilo.py`) y lint de sincronía antes del render (`scripts/lint_w3d.py`).
 - Herramientas opcionales sobre las que avisa el preflight: `faster-whisper`, `auto-editor`, `deepFilter`, `yt-dlp`, `tesseract`.
 
 Detalle en [Preflight-Software](docs/Preflight-Software.md).
